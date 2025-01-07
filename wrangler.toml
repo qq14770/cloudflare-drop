@@ -111,3 +111,11 @@ enabled = true
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[env.staging]
+assets = { directory = "./dist/", binding = "ASSETS", html_handling = "none", not_found_handling = "single-page-application" }
+workers_dev = true
+
+[env.production]
+route = { pattern = "airdrop.wanq.uk", custom_domain = true }
+assets = { directory = "./dist/", binding = "ASSETS", html_handling = "none", not_found_handling = "single-page-application" }

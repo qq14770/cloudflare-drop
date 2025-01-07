@@ -2,21 +2,30 @@
 	"name": "cloudflare-workers-openapi",
 	"version": "0.0.1",
 	"private": true,
+	"type": "module",
 	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
-		"start": "wrangler dev",
+    "predeploy": "npm run build:web",
+		"deploy": "wrangler deploy --env staging",
+    "start": "concurrently \"npm run dev:web\" \"npm run dev:app\"",
+		"dev:app": "wrangler dev",
+		"dev:web": "vite",
+		"build:web": "tsc -b ./tsconfig.web.json && vite build",
 		"cf-typegen": "wrangler types"
 	},
 	"dependencies": {
 		"chanfana": "^2.0.2",
 		"hono": "^4.4.7",
+		"preact": "^10.25.3",
 		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241230.0",
+		"@preact/preset-vite": "^2.9.3",
 		"@types/node": "20.8.3",
 		"@types/service-worker-mock": "^2.0.1",
+		"concurrently": "^9.1.2",
+		"typescript": "~5.6.2",
+		"vite": "^6.0.5",
 		"wrangler": "^3.60.3"
 	},
 	"volta": {
