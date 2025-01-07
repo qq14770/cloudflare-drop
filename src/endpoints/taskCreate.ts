@@ -1,58 +1,53 @@
-import { Bool, OpenAPIRoute } from "chanfana";
-import { z } from "zod";
-import { Task } from "../types";
+import { Bool } from 'chanfana'
+import { z } from 'zod'
+import { Context } from 'hono'
+import { tasks, taskInsertSchema, taskSelectSchema } from '../../data/schemas'
+import { Endpoint } from '../endpoint'
 
-export class TaskCreate extends OpenAPIRoute {
-	schema = {
-		tags: ["Tasks"],
-		summary: "Create a new Task",
-		request: {
-			body: {
-				content: {
-					"application/json": {
-						schema: Task,
-					},
-				},
-			},
-		},
-		responses: {
-			"200": {
-				description: "Returns the created task",
-				content: {
-					"application/json": {
-						schema: z.object({
-							series: z.object({
-								success: Bool(),
-								result: z.object({
-									task: Task,
-								}),
-							}),
-						}),
-					},
-				},
-			},
-		},
-	};
+export class TaskCreate extends Endpoint {
+  schema = {
+    tags: ['Tasks'],
+    summary: 'Create a new Task',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: taskInsertSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      '200': {
+        description: 'Returns the created task',
+        content: {
+          'application/json': {
+            schema: z.object({
+              series: z.object({
+                success: Bool(),
+                result: z.object({
+                  task: taskSelectSchema,
+                }),
+              }),
+            }),
+          },
+        },
+      },
+    },
+  }
 
-	async handle(c) {
-		// Get validated data
-		const data = await this.getValidatedData<typeof this.schema>();
+  async handle(c: Context) {
+    const data = await this.getValidatedData<typeof this.schema>()
 
-		// Retrieve the validated request body
-		const taskToCreate = data.body;
+    const taskToCreate = data.body
 
-		// Implement your own object insertion here
+    const db = this.getDB(c)
 
-		// return the new task
-		return {
-			success: true,
-			task: {
-				name: taskToCreate.name,
-				slug: taskToCreate.slug,
-				description: taskToCreate.description,
-				completed: taskToCreate.completed,
-				due_date: taskToCreate.due_date,
-			},
-		};
-	}
+    const [task] = await db.insert(tasks).values(taskToCreate).returning()
+
+    return {
+      success: true,
+      task,
+    }
+  }
 }
