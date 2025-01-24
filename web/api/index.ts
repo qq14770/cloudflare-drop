@@ -17,7 +17,7 @@ export async function uploadFile(
   return await response.json()
 }
 
-export async function fetchPlainText(objectId: string): Promise<string> {
-  const response = await fetch(`/files/${objectId}`)
+export async function fetchPlainText(id: string): Promise<string> {
+  const response = await fetch(`/files/${id}`)
   return response.text()
 }

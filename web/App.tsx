@@ -271,7 +271,7 @@ export function App() {
       />
 
       <Box sx={{ opacity: 0.7 }}>
-        <History onItemClick={(item) => handleResolveFile.current(item.code)} />
+        <History onItemClick={(item) => setCode(item.code)} />
       </Box>
 
       <Message {...messageProps} />

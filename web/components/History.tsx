@@ -53,9 +53,16 @@ class HistoryState {
 
   @action
   private insert(share: Omit<ShareType, 'id' | 'date'>) {
+    const list = [...this.list]
+    const index = list.findIndex(
+      (d) => d.code === share.code && d.type === share.type,
+    )
+    if (index >= 0) {
+      list.splice(index, 1)
+    }
     this.list = [
       { ...share, id: createId(), date: new Date().getTime() },
-      ...this.list,
+      ...list,
     ]
   }
 
@@ -78,8 +85,7 @@ class HistoryState {
   @action
   remove(id: string) {
     if (!id) return
-    const list = this.list.filter((d) => d.id !== id)
-    this.list = list
+    this.list = this.list.filter((d) => d.id !== id)
   }
 }
 
@@ -104,7 +110,9 @@ interface HistoryProps {
 export const History = observer(({ onItemClick }: HistoryProps) => {
   if (state.isEmpty) return null
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (e: MouseEvent, id: string) => {
+    e.preventDefault()
+    e.stopPropagation()
     historyApi.remove(id)
   }
 
@@ -127,7 +135,7 @@ export const History = observer(({ onItemClick }: HistoryProps) => {
                 edge="end"
                 aria-label="delete"
                 sx={{ p: 0.5 }}
-                onClick={() => handleDelete(item.id)}
+                onClick={(e) => handleDelete(e, item.id)}
               >
                 <DeleteIcon />
               </IconButton>

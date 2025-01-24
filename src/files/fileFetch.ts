@@ -9,7 +9,7 @@ export class FileFetch extends Endpoint {
   schema = {
     request: {
       params: z.object({
-        objectId: z.string(),
+        id: z.string(),
       }),
     },
     responses: {
@@ -36,16 +36,10 @@ export class FileFetch extends Endpoint {
 
   async handle(c: Context) {
     const data = await this.getValidatedData<typeof this.schema>()
-    const objectId = data.params.objectId
+    const id = data.params.id
     const db = this.getDB(c)
-    const [record] = await db
-      .select()
-      .from(files)
-      .where(eq(files.objectId, objectId))
+    const [record] = await db.select().from(files).where(eq(files.id, id))
     const kv = this.getKV(c)
-    if (!record) {
-      await kv.delete(objectId)
-    }
     if (!record) {
       return new Response('Invalid object ID', {
         status: 400,
@@ -54,6 +48,8 @@ export class FileFetch extends Endpoint {
         },
       })
     }
+    const objectId = record.objectId
+
     const file = await kv.get(objectId, 'arrayBuffer')
 
     if (!file) {

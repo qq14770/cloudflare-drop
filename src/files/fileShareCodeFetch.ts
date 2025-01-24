@@ -40,10 +40,10 @@ export class FileShareCodeFetch extends Endpoint {
     const db = this.getDB(c)
     const [file] = await db
       .select({
+        id: files.id,
         code: files.code,
         filename: files.filename,
         hash: files.hash,
-        objectId: files.objectId,
         due_date: files.due_date,
         type: files.type,
       })

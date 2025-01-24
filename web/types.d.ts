@@ -1,8 +1,8 @@
 interface FileType {
+  id: string
   code: string
   filename: string
   hash: string
-  objectId: string
   due_date: number
   type: string
 }

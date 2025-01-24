@@ -44,7 +44,7 @@ export function FileDialog({
   useEffect(() => {
     if (isText) {
       ;(async () => {
-        const data = await fetchPlainText(payload.objectId)
+        const data = await fetchPlainText(payload.id)
         updateText(data)
       })()
     }
@@ -97,7 +97,7 @@ export function FileDialog({
           >
             <Button
               variant="contained"
-              href={`/files/${payload.objectId}`}
+              href={`/files/${payload.id}`}
               sx={(theme) => ({
                 mt: 2,
                 pl: 4,

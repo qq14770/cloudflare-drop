@@ -30,7 +30,7 @@ openapi.get('/api/tasks/:taskSlug', TaskFetch)
 openapi.delete('/api/tasks/:taskSlug', TaskDelete)
 
 openapi.put('/files', FileCreate)
-openapi.get('/files/:objectId', FileFetch)
+openapi.get('/files/:id', FileFetch)
 openapi.get('/files/share/:code', FileShareCodeFetch)
 
 app.all(
