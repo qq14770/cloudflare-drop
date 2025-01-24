@@ -1,10 +1,11 @@
 import { Context } from 'hono'
 import mine from 'mime'
 import { createId, init } from '@paralleldrive/cuid2'
-import { Endpoint } from '../endpoint'
 import { z } from 'zod'
 import dayjs, { ManipulateType } from 'dayjs'
+import { inArray } from 'drizzle-orm'
 
+import { Endpoint } from '../endpoint'
 import { files, InsertFileType } from '../../data/schemas'
 
 const duration = ['day', 'week', 'month', 'year', 'hour', 'minute']
@@ -86,13 +87,31 @@ export class FileCreate extends Endpoint {
     const hash = await sha1(data)
 
     const db = this.getDB(c)
-    // todo 共享码冲突
-    const shareCode = init({
+
+    const shareCodeCreate = init({
       length: 6,
-    })().toUpperCase()
+    })
+
+    const shareCodes: Array<string> = new Array(10).fill(
+      shareCodeCreate().toUpperCase(),
+    )
+
+    const records = (
+      await db
+        .select({
+          code: files.code,
+        })
+        .from(files)
+        .where(inArray(files.code, shareCodes))
+    ).map((d) => d.code)
+
+    const shareCode = shareCodes.find((d) => !records.includes(d))
+
+    if (!shareCode) {
+      return this.error('分享码生成失败，请重试')
+    }
 
     const [due, dueType] = resolveDuration(c.env.SHARE_DURATION)
-    console.log(c.env.SHARE_DURATION, due, dueType)
     const dueDate = dayjs().add(due, dueType).toDate()
 
     const insert: InsertFileType = {
