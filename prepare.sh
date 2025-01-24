@@ -19,6 +19,10 @@ if [ -n "$KV_ID" ]; then
   echo -e  "kv_namespaces = [{ binding = \"file_drops\", id = \"$KV_ID\" }]" >> ./wrangler.toml
 fi
 
+if [ -n "$RATE_LIMIT" ]; then
+  echo -e  "unsafe = { bindings = [{ name = \"UPLOAD_LIMIT\", type = \"ratelimit\", namespace_id = \"1001\", simple = { limit = 1, period = 10 } }] }" >> ./wrangler.toml
+fi
+
 # Generate migration
 npm run generate
 

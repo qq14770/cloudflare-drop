@@ -8,4 +8,5 @@ interface Env {
   SHARE_DURATION: string
   DB: D1Database
   ASSETS: Fetcher
+  UPLOAD_LIMIT?: RateLimit
 }

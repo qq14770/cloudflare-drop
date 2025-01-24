@@ -23,6 +23,7 @@ jobs:
           KV_ID: ${{ secrets.KV_ID }}
           CUSTOM_DOMAIN: ${{ secrets.CUSTOM_DOMAIN }}
           SHARE_MAX_SIZE_IN_MB: ${{ vars.SHARE_MAX_SIZE_IN_MB }}
+          RATE_LIMIT: ${{ vars.RATE_LIMIT }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
