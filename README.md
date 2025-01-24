@@ -34,18 +34,21 @@
 
 ### 文件大小限制
 
-默认文件限制为 10M，限制配置分为前端限制和后端接口限制，需要单独配置。
+默认文件限制为 10M，可以通过添加 Action 变量来修改。
 
-1. 前端：新增 `SHARE_MAX_SIZE_IN_MB` Action 变量，值为最大允许的 MB 数字，配置路径：在 forked 的仓库 -> **Settings** -> **Secrets and variables** -> **Actions** -> **New repository variable**
-2. 后端：在 Cloudflare 的 worker 控制台，新增 `SHARE_MAX_SIZE_IN_MB` Action 变量，值为最大允许的 MB 数字，配置路径：cloudflare-drop-production worker -> **设置** -> **变量和机密** -> **添加** -> **部署**
+新增 `SHARE_MAX_SIZE_IN_MB` Action 变量，值为最大允许的 MB 数字，例如 20，配置路径：在 forked 的仓库 -> **Settings** -> **Secrets and variables** -> **Actions** -> **New repository variable**
 
 ### 分享过期时间配置
 
-分享默认有效期是一个小时，可以通过配置变量来修改。
+分享默认有效期是一个小时，可以通过添加 Action 变量来修改。
 
-在 Cloudflare 的 worker 控制台，新增 `SHARE_MAX_SIZE_IN_MB` Action 变量，值为最大允许的 MB 数字，配置路径：cloudflare-drop-production worker -> **设置** -> **变量和机密** -> **添加** -> **部署**
+新增 `SHARE_DURATION` Action 变量，配置格式为 `数值+单位`，比如 (5minute)，支持的单位有 `minute`, `hour`, `day`, `week`, `month`, `year`
 
-配置格式为 `数值+单位`，比如 (5minute)，支持的单位有 `minute`, `hour`, `day`, `week`, `month`, `year`, `hour`
+### 新增 IP 上传频率限制
+
+默认无限制，可以通过添加 Action 变量来修改。
+
+新增 `RATE_LIMIT` Action 变量，值为每 10s 可请求数，比如 10
 
 ## 过期清理
 
