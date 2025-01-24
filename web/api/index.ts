@@ -1,8 +1,18 @@
+async function processResponse(response: Response) {
+  if (response.ok) return await response.json()
+
+  return {
+    result: false,
+    data: null,
+    message: await response.text(),
+  }
+}
+
 export async function resolveFileByCode(
   code: string,
 ): Promise<ApiResponseType<FileType>> {
   const response = await fetch(`/files/share/${code}`)
-  return await response.json()
+  return processResponse(response)
 }
 
 export async function uploadFile(
@@ -14,7 +24,7 @@ export async function uploadFile(
     method: 'PUT',
     body: formData,
   })
-  return await response.json()
+  return processResponse(response)
 }
 
 export async function fetchPlainText(id: string): Promise<string> {
