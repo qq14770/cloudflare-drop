@@ -44,7 +44,6 @@ export function Code({ length, value, onChange, disabled }: CodeProps) {
       codes.every((d) => /^[a-zA-Z\d]$/.test(d)) &&
       onChange
     ) {
-      console.log(codes, '==>')
       onChange(codes.join(''))
     }
   }, [codes, onChange])

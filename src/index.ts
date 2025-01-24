@@ -1,10 +1,6 @@
 import { fromHono } from 'chanfana'
 import { Hono } from 'hono'
 import { dbMiddleware } from './middlewares'
-import { TaskCreate } from './endpoints/taskCreate'
-import { TaskDelete } from './endpoints/taskDelete'
-import { TaskFetch } from './endpoints/taskFetch'
-import { TaskList } from './endpoints/taskList'
 import { FileCreate, FileFetch, FileShareCodeFetch } from './files'
 
 import { scheduled } from './scheduled'
@@ -22,12 +18,6 @@ app.use('/files/*', dbMiddleware)
 const openapi = fromHono(app, {
   docs_url: '/doc',
 })
-
-// Register OpenAPI endpoints
-openapi.get('/api/tasks', TaskList)
-openapi.post('/api/tasks', TaskCreate)
-openapi.get('/api/tasks/:taskSlug', TaskFetch)
-openapi.delete('/api/tasks/:taskSlug', TaskDelete)
 
 openapi.put('/files', FileCreate)
 openapi.get('/files/:id', FileFetch)
