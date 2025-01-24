@@ -141,6 +141,7 @@ export const History = observer(({ onItemClick }: HistoryProps) => {
               </IconButton>
             }
             sx={{
+              cursor: 'pointer',
               pr: '32px',
               '.MuiListItemSecondaryAction-root': {
                 top: -2,
