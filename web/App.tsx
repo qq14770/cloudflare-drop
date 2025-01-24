@@ -27,6 +27,8 @@ import {
   FileDialog,
   ShareDialog,
   Github,
+  historyApi,
+  History,
 } from './components'
 import './app.css'
 import { resolveFileByCode, uploadFile } from './api'
@@ -87,6 +89,10 @@ export function App() {
         return
       }
       // 打开弹窗
+      historyApi.insertReceived(
+        data.data.code,
+        data.data.type !== 'plain/string',
+      )
       await dialogs
         .open(FileDialog, { ...data.data, message })
         .then(reset.current)
@@ -131,6 +137,7 @@ export function App() {
         message.error(uploaded.message)
         return
       }
+      historyApi.insertShared(uploaded.data.code, tab === 'file')
       await dialogs
         .open(ShareDialog, { ...uploaded.data, message })
         .then(reset.current)
@@ -255,6 +262,18 @@ export function App() {
           </Box>
         </Container>
       </Paper>
+
+      <Divider
+        sx={{
+          mt: 4,
+          mb: 2,
+        }}
+      />
+
+      <Box sx={{ opacity: 0.7 }}>
+        <History onItemClick={(item) => handleResolveFile.current(item.code)} />
+      </Box>
+
       <Message {...messageProps} />
       <Backdrop
         sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
