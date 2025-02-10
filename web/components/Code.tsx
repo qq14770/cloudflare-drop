@@ -151,6 +151,11 @@ export function Code({ length, value, onChange, disabled }: CodeProps) {
                 letterSpacing: '0.5em',
               },
             }}
+            slotProps={{
+              htmlInput: {
+                'data-bwignore': 'off',
+              },
+            }}
             onInput={(e) => handleInput(e, index)}
             onKeyUp={(e) => handleKeyUp(e, index)}
             onPaste={(e) => handlePaste(e, index)}
