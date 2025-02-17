@@ -1,6 +1,10 @@
 import { fromHono } from 'chanfana'
 import { Hono } from 'hono'
-import { dbMiddleware, limitMiddleware } from './middlewares'
+import {
+  dbMiddleware,
+  limitMiddleware,
+  terminalMiddleware,
+} from './middlewares'
 import { FileCreate, FileFetch, FileShareCodeFetch } from './files'
 
 import { scheduled } from './scheduled'
@@ -14,6 +18,7 @@ const app = new Hono<{
 app.use('/api/*', dbMiddleware)
 app.use('/files/*', dbMiddleware)
 app.use('/files', limitMiddleware)
+app.use('/', terminalMiddleware)
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {

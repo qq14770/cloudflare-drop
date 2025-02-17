@@ -1,9 +1,28 @@
 import { Endpoint } from '../endpoint'
 import { Context } from 'hono'
 import { z } from 'zod'
-import { files, fileSelectSchema } from '../../data/schemas'
+import { DrizzleD1Database } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
+
+import { files, fileSelectSchema } from '../../data/schemas'
+
+export async function getFile(db: DrizzleD1Database, code: string) {
+  const [file] = await db
+    .select({
+      id: files.id,
+      code: files.code,
+      filename: files.filename,
+      hash: files.hash,
+      due_date: files.due_date,
+      type: files.type,
+      objectId: files.objectId,
+    })
+    .from(files)
+    .where(eq(files.code, code.toUpperCase()))
+
+  return file
+}
 
 export class FileShareCodeFetch extends Endpoint {
   schema = {
@@ -38,17 +57,9 @@ export class FileShareCodeFetch extends Endpoint {
     const code = data.params.code.toUpperCase()
 
     const db = this.getDB(c)
-    const [file] = await db
-      .select({
-        id: files.id,
-        code: files.code,
-        filename: files.filename,
-        hash: files.hash,
-        due_date: files.due_date,
-        type: files.type,
-      })
-      .from(files)
-      .where(eq(files.code, code))
+
+    const file = await getFile(db, code)
+
     if (!file) {
       return this.error('分享码无效')
     }
@@ -58,6 +69,7 @@ export class FileShareCodeFetch extends Endpoint {
       return this.error('分享已过期')
     }
 
-    return this.success(file)
+    const { objectId, ...rest } = file
+    return this.success(rest)
   }
 }
