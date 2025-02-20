@@ -18,6 +18,10 @@ function resolveDuration(str: string): [number, ManipulateType] {
   return [Number.parseInt(match[1], 10), match[2] as ManipulateType]
 }
 
+function numberRandom() {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 async function sha1(data: ArrayBuffer) {
   const digest = await crypto.subtle.digest(
     {
@@ -92,9 +96,10 @@ export class FileCreate extends Endpoint {
       length: 6,
     })
 
-    const shareCodes: Array<string> = new Array(10).fill(
-      shareCodeCreate().toUpperCase(),
-    )
+    const shareCodes: Array<string> = [
+      ...new Array(20).fill(1).map(() => numberRandom()),
+      ...new Array(10).fill(1).map(() => shareCodeCreate().toUpperCase()),
+    ]
 
     const records = (
       await db
