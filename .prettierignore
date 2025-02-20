@@ -5,3 +5,4 @@ node_modules
 *.toml
 *.sh
 /assets
+/public

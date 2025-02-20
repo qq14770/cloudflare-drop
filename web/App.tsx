@@ -30,7 +30,6 @@ import {
   historyApi,
   History,
 } from './components'
-import './app.css'
 import { resolveFileByCode, uploadFile } from './api'
 
 const VisuallyHiddenInput = styled('input')({
@@ -157,10 +156,25 @@ export function App() {
       }}
     >
       <Box className="flex justify-between" sx={{ pt: 2, pb: 2 }}>
-        <Typography variant="h3" color="primary">
-          Cloudflare Drop
-        </Typography>
+        <div class="flex flex-row">
+          <img src="/logo.png" alt="brand" height="80" />
+          <Typography
+            variant="h4"
+            color="primary"
+            sx={{
+              position: 'relative',
+              top: 14,
+              fontFamily: 'DingDing',
+            }}
+          >
+            Cloudflare Drop
+          </Typography>
+        </div>
         <IconButton
+          sx={{
+            position: 'relative',
+            top: -10,
+          }}
           href="https://github.com/oustn/cloudflare-drop"
           target="_blank"
         >

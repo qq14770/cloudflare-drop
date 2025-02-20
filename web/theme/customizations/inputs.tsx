@@ -40,6 +40,12 @@ export const inputsCustomizations: Components<Theme> = {
       multiline: {
         padding: 0,
       },
+
+      root: {
+        '&:not(.Mui-focused):hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#9DBFF9',
+        },
+      },
     },
   },
   MuiInputBase: {
