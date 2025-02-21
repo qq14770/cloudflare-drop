@@ -2,10 +2,10 @@
 
 基于 Cloudflare Worker、D1Database 和 KV 实现的轻量级文件分享工具。
 
-<img src="assets/IMG_5810.png" width="200">
-<img src="assets/IMG_5811.png" width="200">
-<img src="assets/IMG_5812.png" width="200">
-<img src="assets/IMG_5813.png" width="200">
+<img src="assets/IMG_5898.png" width="200">
+<img src="assets/IMG_5899.png" width="200">
+<img src="assets/IMG_5900.png" width="200">
+<img src="assets/IMG_5901.png" width="200">
 
 ## 自动部署
 
@@ -18,6 +18,10 @@
 5. 部署
 
 > 创建 Cloudflare API Key 时，如果使用 worker 模板创建，请记得添加 D1 的编辑权限。
+
+## 更新
+
+同步 Fork 的仓库即可自动更新 & 构建。
 
 ## 配置 GitHub Action Secret
 
