@@ -7,6 +7,7 @@ import { inArray } from 'drizzle-orm'
 
 import { Endpoint } from '../endpoint'
 import { files, InsertFileType } from '../../data/schemas'
+import { MAX_DURATION } from '../common'
 
 const duration = ['day', 'week', 'month', 'year', 'hour', 'minute']
 
@@ -55,6 +56,8 @@ export class FileCreate extends Endpoint {
     let filename: string
     let type: string | null
     let size: number = 0
+    let duration: string = c.env.SHARE_DURATION
+    let isEphemeral = false
     const contentType = c.req.header('Content-Type')
     if (
       contentType?.startsWith('multipart/form-data') ||
@@ -62,6 +65,23 @@ export class FileCreate extends Endpoint {
     ) {
       const formData = await c.req.formData()
       const file = formData.get('file') as File
+      const durationData = formData.get('duration') as string
+      if (durationData) {
+        try {
+          duration = JSON.parse(durationData)
+        } catch (_e) {
+          //
+        }
+      }
+      const isEphemeralData = formData.get('isEphemeral') as string
+      if (isEphemeralData) {
+        try {
+          isEphemeral = JSON.parse(isEphemeralData)
+        } catch (_e) {
+          //
+        }
+      }
+
       data = await file.arrayBuffer()
       filename = file.name
       type = file.type ?? mine.getType(filename) ?? 'text/plain'
@@ -116,8 +136,11 @@ export class FileCreate extends Endpoint {
       return this.error('分享码生成失败，请重试')
     }
 
-    const [due, dueType] = resolveDuration(c.env.SHARE_DURATION)
-    const dueDate = dayjs().add(due, dueType).toDate()
+    const [due, dueType] = resolveDuration(duration || c.env.SHARE_DURATION)
+    const forever = due === 999 && dueType === 'year'
+    const dueDate = forever
+      ? MAX_DURATION.toDate()
+      : dayjs().add(due, dueType).toDate()
 
     const insert: InsertFileType = {
       objectId: key,
@@ -127,18 +150,23 @@ export class FileCreate extends Endpoint {
       code: shareCode,
       due_date: dueDate,
       size,
+      is_ephemeral: isEphemeral,
     }
 
     const [record] = await db.insert(files).values(insert).returning({
       hash: files.hash,
       code: files.code,
       due_date: files.due_date,
+      is_ephemeral: files.is_ephemeral,
     })
 
     return {
       message: 'ok',
       result: true,
-      data: record,
+      data: {
+        ...record,
+        due_date: forever ? null : record.due_date,
+      },
     }
   }
 }

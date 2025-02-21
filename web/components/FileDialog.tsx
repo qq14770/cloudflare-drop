@@ -8,6 +8,7 @@ import TextField from '@mui/material/TextField'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import zh from 'dayjs/locale/zh-cn'
+import { useDialogs } from '@toolpad/core/useDialogs'
 
 import { fetchPlainText } from '../api'
 import { copyToClipboard } from '../common'
@@ -28,6 +29,7 @@ export function FileDialog({
     }
   }
 >) {
+  const dialogs = useDialogs()
   const isText = payload.type === 'plain/string'
   const [text, updateText] = useState('')
 
@@ -50,10 +52,24 @@ export function FileDialog({
     }
   }, [])
 
+  const handleClose = async () => {
+    if (!payload.is_ephemeral) {
+      return onClose()
+    }
+    const confirmed = await dialogs.confirm('关闭后无法再次查看，确认关闭？', {
+      okText: '确认',
+      cancelText: '取消',
+      title: '阅后即焚',
+    })
+    if (confirmed) {
+      return onClose()
+    }
+  }
+
   return (
     <BasicDialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title={isText ? '文本分享' : '文件分享'}
     >
       <Box>
@@ -134,11 +150,13 @@ export function FileDialog({
             {payload.hash}
           </Typography>
           <Typography className="mt-1" variant="body2" color="textDisabled">
-            预计过期于：
+            {payload.due_date ? '预计过期于：' : '永久有效'}
           </Typography>
-          <Typography className="mt-1" variant="body2">
-            {dayjs(payload.due_date).fromNow()}
-          </Typography>
+          {payload.due_date && (
+            <Typography className="mt-1" variant="body2">
+              {dayjs(payload.due_date).fromNow()}
+            </Typography>
+          )}
         </Box>
       </Box>
     </BasicDialog>

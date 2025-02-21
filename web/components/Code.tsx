@@ -147,7 +147,7 @@ export function Code({ length, value, onChange, disabled }: CodeProps) {
               '.MuiInputBase-root input': {
                 paddingBlock: '0.4em',
                 textAlign: 'center',
-                '-webkit-text-fill-color': 'transparent !important',
+                WebkitTextFillColor: 'transparent !important',
                 letterSpacing: '0.5em',
               },
             }}

@@ -19,6 +19,8 @@ import Divider from '@mui/material/Divider'
 import Backdrop from '@mui/material/Backdrop'
 import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Checkbox from '@mui/material/Checkbox'
 
 import {
   Code,
@@ -30,6 +32,7 @@ import {
   historyApi,
   History,
   Progress,
+  Duration,
 } from './components'
 import { resolveFileByCode, uploadFile } from './api'
 
@@ -52,6 +55,8 @@ export function App() {
   const [tab, setTab] = useState('text')
   const [messageProps, message] = useMessage()
   const dialogs = useDialogs()
+  const [duration, updateDuration] = useState('')
+  const [isEphemeral, updateEphemeral] = useState(false)
 
   const [backdropOpen, setBackdropOpen] = useState(false)
   const [progress, updateProgress] = useState<null | number>(null)
@@ -76,6 +81,8 @@ export function App() {
   const handleChangeTab = (_event: unknown, newValue: string) => {
     setTab(newValue)
     setText('')
+    updateEphemeral(false)
+    updateDuration('')
   }
 
   const [text, setText] = useState('')
@@ -87,6 +94,8 @@ export function App() {
     setFile(null)
     setCode('')
     setTab('text')
+    updateDuration('')
+    updateEphemeral(false)
   })
 
   const handleResolveFile = useRef(async (code: string) => {
@@ -143,9 +152,16 @@ export function App() {
     if (!data) return
     handleProgressOpen()
     try {
-      const uploaded = await uploadFile(data, (event) => {
-        updateProgress((event.progress ?? 0) * 100)
-      })
+      const uploaded = await uploadFile(
+        {
+          data,
+          isEphemeral,
+          duration,
+        },
+        (event) => {
+          updateProgress((event.progress ?? 0) * 100)
+        },
+      )
       handleProgressClose()
       if (!uploaded.result || !uploaded.data) {
         message.error(uploaded.message)
@@ -160,6 +176,10 @@ export function App() {
       message.error(data)
       handleProgressClose()
     }
+  }
+
+  const handleChangeEphemeral = (_event: unknown, checked: boolean) => {
+    updateEphemeral(checked)
   }
 
   return (
@@ -238,16 +258,16 @@ export function App() {
                   <Tab label="文件分享" value="file" />
                 </TabList>
               </Box>
-              <TabPanel value="text" sx={{ height: 270, pl: 0, pr: 0 }}>
+              <TabPanel value="text" sx={{ height: 230, pl: 0, pr: 0 }}>
                 <TextField
                   multiline
                   fullWidth
-                  rows={10}
+                  rows={8}
                   value={text}
                   onInput={handleTextInput}
                 />
               </TabPanel>
-              <TabPanel value="file" sx={{ height: 270, pl: 0, pr: 0 }}>
+              <TabPanel value="file" sx={{ height: 230, pl: 0, pr: 0, pb: 0 }}>
                 <Box className="flex">
                   <Button
                     className="shrink-0"
@@ -274,6 +294,20 @@ export function App() {
                 </Box>
               </TabPanel>
             </TabContext>
+          </Box>
+          <Box>
+            <Duration value={duration} onChange={updateDuration} />
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isEphemeral}
+                  onChange={handleChangeEphemeral}
+                />
+              }
+              label="阅后即焚"
+            />
           </Box>
           <Box className="flex flex-row-reverse">
             <Button

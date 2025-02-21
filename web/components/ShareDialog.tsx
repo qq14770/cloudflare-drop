@@ -121,12 +121,15 @@ export function ShareDialog({
           >
             {payload.hash}
           </Typography>
+          {}
           <Typography className="mt-1" variant="body2" color="textDisabled">
-            预计过期于：
+            {payload.due_date ? '预计过期于：' : '永久有效'}
           </Typography>
-          <Typography className="mt-1" variant="body2">
-            {dayjs(payload.due_date).fromNow()}
-          </Typography>
+          {payload.due_date && (
+            <Typography className="mt-1" variant="body2">
+              {dayjs(payload.due_date).fromNow()}
+            </Typography>
+          )}
         </Box>
       </Box>
     </BasicDialog>

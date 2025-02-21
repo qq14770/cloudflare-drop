@@ -18,11 +18,18 @@ export async function resolveFileByCode(
 }
 
 export async function uploadFile(
-  data: Blob,
+  fileInfo: {
+    data: Blob
+    isEphemeral?: boolean
+    duration?: string | null
+  },
   onUpload?: (progressEvent: AxiosProgressEvent) => void,
 ): Promise<ApiResponseType<FileUploadedType>> {
+  const { data, isEphemeral = false, duration = '' } = fileInfo
   const formData = new FormData()
   formData.append('file', data)
+  formData.append('isEphemeral', JSON.stringify(isEphemeral))
+  formData.append('duration', JSON.stringify(duration))
   try {
     const { data } = await axios.put('/files', formData, {
       onUploadProgress: onUpload,

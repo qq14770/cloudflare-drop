@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
 
 import { files, fileSelectSchema } from '../../data/schemas'
+import { MAX_DURATION } from '../common'
 
 export async function getFile(db: DrizzleD1Database, code: string) {
   const [file] = await db
@@ -18,6 +19,7 @@ export async function getFile(db: DrizzleD1Database, code: string) {
       type: files.type,
       objectId: files.objectId,
       size: files.size,
+      is_ephemeral: files.is_ephemeral,
     })
     .from(files)
     .where(eq(files.code, code.toUpperCase()))
@@ -53,6 +55,7 @@ export class FileShareCodeFetch extends Endpoint {
       },
     },
   }
+
   async handle(c: Context) {
     const data = await this.getValidatedData<typeof this.schema>()
     const code = data.params.code.toUpperCase()
@@ -71,6 +74,20 @@ export class FileShareCodeFetch extends Endpoint {
     }
 
     const { objectId, ...rest } = file
-    return this.success(rest)
+
+    // 阅后即焚
+    if (rest.is_ephemeral) {
+      await db
+        .update(files)
+        .set({
+          due_date: new Date(0),
+        })
+        .where(eq(files.id, rest.id))
+    }
+
+    return this.success({
+      ...rest,
+      due_date: day.isSame(MAX_DURATION) ? null : file.due_date,
+    })
   }
 }

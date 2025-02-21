@@ -6,6 +6,7 @@ interface FileType {
   due_date: number
   type: string
   size: number
+  is_ephemeral?: boolean
 }
 
 interface FileUploadedType {
