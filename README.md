@@ -23,6 +23,8 @@
 
 同步 Fork 的仓库即可自动更新 & 构建。
 
+<img src="assets/IMG_01.png" width="200">
+
 ## 配置 GitHub Action Secret
 
 1. 在初次部署完成后，还需要创建 [D1Database](https://developers.cloudflare.com/d1/get-started/#2-create-a-database) & [KV](https://developers.cloudflare.com/kv/get-started/#2-create-a-kv-namespace)，参考对应文档。
