@@ -5,6 +5,7 @@ interface FileType {
   hash: string
   due_date: number
   type: string
+  size: number
 }
 
 interface FileUploadedType {

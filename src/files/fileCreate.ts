@@ -81,7 +81,7 @@ export class FileCreate extends Endpoint {
     const envMax = Number.parseInt(c.env.SHARE_MAX_SIZE_IN_MB, 10)
     const max = Number.isNaN(envMax) || envMax <= 0 ? 10 : envMax
 
-    if (size > max * 1024 * 1024) {
+    if (size > max * 1000 * 1000) {
       return this.error(`文件大于 ${max}M`)
     }
 
@@ -126,6 +126,7 @@ export class FileCreate extends Endpoint {
       hash,
       code: shareCode,
       due_date: dueDate,
+      size,
     }
 
     const [record] = await db.insert(files).values(insert).returning({

@@ -16,6 +16,8 @@ export const files = sqliteTable('files', {
   type: text('type'), // 类型
   hash: text('hash').notNull(), // hash 值
   code: text('code').notNull().unique(), // 分享码
+  size: integer('size').default(0),
+  is_ephemeral: integer('is_ephemeral', { mode: 'boolean' }).default(false), // 阅后即焚
   due_date: integer('due_date', { mode: 'timestamp' }).notNull(), // 过期时间
 })
 

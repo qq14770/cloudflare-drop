@@ -92,14 +92,20 @@ export function FileDialog({
         )}
         {!isText && (
           <Box
-            className="flex items-center justify-center w-full"
+            className="flex items-center justify-center w-full flex-col"
             sx={{ p: 2 }}
           >
+            <Typography variant="caption">
+              {payload.filename}
+              {payload.size >= 0
+                ? ` (${(payload.size / (1000 * 1000)).toFixed(1)}M)`
+                : ''}
+            </Typography>
             <Button
               variant="contained"
               href={`/files/${payload.id}`}
               sx={(theme) => ({
-                mt: 2,
+                mt: 1,
                 pl: 4,
                 pr: 4,
                 width: 200,

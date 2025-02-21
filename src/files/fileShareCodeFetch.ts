@@ -17,6 +17,7 @@ export async function getFile(db: DrizzleD1Database, code: string) {
       due_date: files.due_date,
       type: files.type,
       objectId: files.objectId,
+      size: files.size,
     })
     .from(files)
     .where(eq(files.code, code.toUpperCase()))
