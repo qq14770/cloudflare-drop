@@ -198,7 +198,7 @@ export function App() {
         p: 2,
       }}
     >
-      <Box className="flex justify-between" sx={{ p: 0 }}>
+      <Box className="flex justify-between items-center" sx={{ p: 0 }}>
         <div class="flex flex-row">
           <img src="/logo.png" alt="brand" height="80" />
           <Typography
