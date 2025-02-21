@@ -29,6 +29,7 @@ import {
   Github,
   historyApi,
   History,
+  Progress,
 } from './components'
 import { resolveFileByCode, uploadFile } from './api'
 
@@ -53,11 +54,23 @@ export function App() {
   const dialogs = useDialogs()
 
   const [backdropOpen, setBackdropOpen] = useState(false)
+  const [progress, updateProgress] = useState<null | number>(null)
+
   const handleBackdropClose = () => {
     setBackdropOpen(false)
   }
   const handleBackdropOpen = () => {
     setBackdropOpen(true)
+  }
+
+  const handleProgressOpen = () => {
+    updateProgress(0)
+  }
+
+  const handleProgressClose = () => {
+    setTimeout(() => {
+      updateProgress(null)
+    }, 1000)
   }
 
   const handleChangeTab = (_event: unknown, newValue: string) => {
@@ -128,10 +141,12 @@ export function App() {
       })
     }
     if (!data) return
-    handleBackdropOpen()
+    handleProgressOpen()
     try {
-      const uploaded = await uploadFile(data)
-      handleBackdropClose()
+      const uploaded = await uploadFile(data, (event) => {
+        updateProgress((event.progress ?? 0) * 100)
+      })
+      handleProgressClose()
       if (!uploaded.result || !uploaded.data) {
         message.error(uploaded.message)
         return
@@ -143,7 +158,7 @@ export function App() {
     } catch (e) {
       const data = (e as { message: string }).message || JSON.stringify(e)
       message.error(data)
-      handleBackdropClose()
+      handleProgressClose()
     }
   }
 
@@ -295,6 +310,7 @@ export function App() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
+      <Progress open={progress !== null} value={progress ?? 0} />
     </Container>
   )
 }
