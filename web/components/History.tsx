@@ -8,11 +8,16 @@ import ListItem from '@mui/material/ListItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import IconButton from '@mui/material/IconButton'
-import ShareIcon from '@mui/icons-material/Send'
-import DownloadIcon from '@mui/icons-material/Download'
+import TextFieldsIcon from '@mui/icons-material/TextFields'
+import FileCopyIcon from '@mui/icons-material/FileCopy'
 import DeleteIcon from '@mui/icons-material/Delete'
 import Typography from '@mui/material/Typography'
 import dayjs from 'dayjs'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import TabPanel from '@mui/lab/TabPanel'
+import Tab from '@mui/material/Tab'
+import { useState } from 'preact/hooks'
 
 export interface ShareType {
   type: 'received' | 'shared'
@@ -30,6 +35,16 @@ class HistoryState {
   @computed
   get isEmpty() {
     return !this.list.length
+  }
+
+  @computed
+  get sharedList() {
+    return this.list.filter((d) => d.type === 'shared')
+  }
+
+  @computed
+  get receivedList() {
+    return this.list.filter((d) => d.type === 'received')
   }
 
   constructor() {
@@ -55,9 +70,12 @@ class HistoryState {
   private insert(share: Omit<ShareType, 'id' | 'date'>) {
     const list = [...this.list]
     const index = list.findIndex(
-      (d) => d.code === share.code && d.type === share.type,
+      (d) =>
+        d.code === share.code &&
+        (d.type === share.type || share.type === 'received'),
     )
     if (index >= 0) {
+      if (share.type === 'received' && list[index].type === 'shared') return
       list.splice(index, 1)
     }
     this.list = [
@@ -107,8 +125,67 @@ interface HistoryProps {
   onItemClick?: (share: ShareType) => void
 }
 
+interface RecordListProps {
+  list: Array<ShareType>
+  onView: (item: ShareType) => void
+  onDelete: (e: MouseEvent, id: string) => void
+}
+
+function RecordList(props: RecordListProps) {
+  const { list, onView, onDelete } = props
+  if (!list.length)
+    return (
+      <Box className="flex items-center justify-center" sx={{ p: 4 }}>
+        <Typography variant="caption" color="textDisabled">
+          记录为空
+        </Typography>
+      </Box>
+    )
+  return (
+    <List className="min-h-0 overflow-auto">
+      {list.map((item) => (
+        <ListItem
+          className="items-start"
+          key={item.id}
+          onClick={() => onView(item)}
+          secondaryAction={
+            <IconButton
+              edge="end"
+              aria-label="delete"
+              sx={{ p: 0.5 }}
+              onClick={(e) => onDelete(e, item.id)}
+            >
+              <DeleteIcon />
+            </IconButton>
+          }
+          sx={{
+            cursor: 'pointer',
+            pr: '32px',
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 24, mr: 2 }}>
+            {item.file && <FileCopyIcon fontSize="small" />}
+            {!item.file && <TextFieldsIcon fontSize="medium" />}
+          </ListItemIcon>
+          <ListItemText
+            primary={<Typography>分享码 {item.code}，点击查看</Typography>}
+            secondary={
+              <Typography color="textDisabled" variant="caption">
+                {dayjs(item.date).fromNow()}
+              </Typography>
+            }
+            sx={{
+              m: 0,
+            }}
+          />
+        </ListItem>
+      ))}
+    </List>
+  )
+}
+
 export const History = observer(({ onItemClick }: HistoryProps) => {
-  if (state.isEmpty) return null
+  const [tab, updateTab] = useState<'shared' | 'received'>('shared')
 
   const handleDelete = (e: MouseEvent, id: string) => {
     e.preventDefault()
@@ -123,55 +200,37 @@ export const History = observer(({ onItemClick }: HistoryProps) => {
   }
 
   return (
-    <Box>
-      <List dense>
-        {state.list.map((item) => (
-          <ListItem
-            className="items-start"
-            key={item.id}
-            onClick={() => handleView(item)}
-            secondaryAction={
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                sx={{ p: 0.5 }}
-                onClick={(e) => handleDelete(e, item.id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            }
-            sx={{
-              cursor: 'pointer',
-              pr: '32px',
-              '.MuiListItemSecondaryAction-root': {
-                top: -2,
-                transform: 'none',
-              },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 24 }}>
-              {item.type === 'shared' && <ShareIcon fontSize="small" />}
-              {item.type === 'received' && <DownloadIcon fontSize="medium" />}
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Typography>
-                  {item.type === 'shared' ? '分享' : '接收'}了
-                  {item.file ? '文件' : '文本'}，分享码 {item.code}，点击查看
-                </Typography>
-              }
-              secondary={
-                <Typography color="textDisabled" variant="caption">
-                  {dayjs(item.date).fromNow()}
-                </Typography>
-              }
-              sx={{
-                m: 0,
-              }}
+    <Box className="flex flex-col h-full" sx={{ width: 320 }}>
+      <Typography variant="h4" color="textDisabled" sx={{ p: 2 }}>
+        历史记录
+      </Typography>
+      <TabContext value={tab}>
+        <Box
+          className="shrink-0"
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <TabList onChange={(_e, tab) => updateTab(tab)}>
+            <Tab label="已分享" value="shared" />
+            <Tab label="已接收" value="received" />
+          </TabList>
+        </Box>
+        <Box className="min-h-0 overflow-auto">
+          <TabPanel value="shared" sx={{ p: 0 }}>
+            <RecordList
+              list={state.sharedList}
+              onView={handleView}
+              onDelete={handleDelete}
             />
-          </ListItem>
-        ))}
-      </List>
+          </TabPanel>
+          <TabPanel value="received" sx={{ p: 0 }}>
+            <RecordList
+              list={state.receivedList}
+              onView={handleView}
+              onDelete={handleDelete}
+            />
+          </TabPanel>
+        </Box>
+      </TabContext>
     </Box>
   )
 })

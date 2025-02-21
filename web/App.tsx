@@ -21,6 +21,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
+import Drawer from '@mui/material/Drawer'
 
 import {
   Code,
@@ -60,6 +62,12 @@ export function App() {
 
   const [backdropOpen, setBackdropOpen] = useState(false)
   const [progress, updateProgress] = useState<null | number>(null)
+
+  const [drawerOpened, updateDrawerOpened] = useState(false)
+
+  const toggleDrawer = (newOpen: boolean) => () => {
+    updateDrawerOpened(newOpen)
+  }
 
   const handleBackdropClose = () => {
     setBackdropOpen(false)
@@ -190,7 +198,7 @@ export function App() {
         p: 2,
       }}
     >
-      <Box className="flex justify-between" sx={{ pt: 2, pb: 2 }}>
+      <Box className="flex justify-between" sx={{ p: 0 }}>
         <div class="flex flex-row">
           <img src="/logo.png" alt="brand" height="80" />
           <Typography
@@ -243,7 +251,6 @@ export function App() {
           <Divider
             sx={{
               mt: 2,
-              mb: 2,
             }}
           />
 
@@ -309,7 +316,7 @@ export function App() {
               label="阅后即焚"
             />
           </Box>
-          <Box className="flex flex-row-reverse">
+          <Box className="flex flex-row-reverse justify-between">
             <Button
               variant="contained"
               disabled={(tab === 'text' && !text) || (tab === 'file' && !file)}
@@ -322,20 +329,22 @@ export function App() {
             >
               分享
             </Button>
+            <Button variant="text" color="primary" onClick={toggleDrawer(true)}>
+              历史记录
+              <ReceiptLongIcon fontSize="small" />
+            </Button>
           </Box>
         </Container>
       </Paper>
 
-      <Divider
-        sx={{
-          mt: 4,
-          mb: 2,
-        }}
-      />
-
-      <Box sx={{ opacity: 0.7 }}>
-        <History onItemClick={(item) => setCode(item.code)} />
-      </Box>
+      <Drawer open={drawerOpened} onClose={toggleDrawer(false)} anchor="right">
+        <History
+          onItemClick={(item) => {
+            updateDrawerOpened(false)
+            setCode(item.code)
+          }}
+        />
+      </Drawer>
 
       <Message {...messageProps} />
       <Backdrop
