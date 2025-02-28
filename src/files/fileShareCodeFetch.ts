@@ -20,6 +20,7 @@ export async function getFile(db: DrizzleD1Database, code: string) {
       objectId: files.objectId,
       size: files.size,
       is_ephemeral: files.is_ephemeral,
+      is_encrypted: files.is_encrypted,
     })
     .from(files)
     .where(eq(files.code, code.toUpperCase()))

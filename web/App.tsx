@@ -35,6 +35,7 @@ import {
   History,
   Progress,
   Duration,
+  PasswordSwitch,
 } from './components'
 import { resolveFileByCode, uploadFile } from './api'
 
@@ -64,6 +65,8 @@ export function App() {
   const [progress, updateProgress] = useState<null | number>(null)
 
   const [drawerOpened, updateDrawerOpened] = useState(false)
+
+  const [password, updatePassword] = useState('')
 
   const toggleDrawer = (newOpen: boolean) => () => {
     updateDrawerOpened(newOpen)
@@ -104,6 +107,7 @@ export function App() {
     setTab('text')
     updateDuration('')
     updateEphemeral(false)
+    updatePassword('')
   })
 
   const handleResolveFile = useRef(async (code: string) => {
@@ -165,6 +169,7 @@ export function App() {
           data,
           isEphemeral,
           duration,
+          password,
         },
         (event) => {
           updateProgress((event.progress ?? 0) * 100)
@@ -317,18 +322,23 @@ export function App() {
             />
           </Box>
           <Box className="flex flex-row-reverse justify-between">
-            <Button
-              variant="contained"
-              disabled={(tab === 'text' && !text) || (tab === 'file' && !file)}
-              endIcon={<SendIcon />}
-              sx={{
-                pl: 3,
-                pr: 3,
-              }}
-              onClick={handleShare}
-            >
-              分享
-            </Button>
+            <div>
+              <PasswordSwitch value={password} onChange={updatePassword} />
+              <Button
+                variant="contained"
+                disabled={
+                  (tab === 'text' && !text) || (tab === 'file' && !file)
+                }
+                endIcon={<SendIcon />}
+                sx={{
+                  pl: 3,
+                  pr: 3,
+                }}
+                onClick={handleShare}
+              >
+                分享
+              </Button>
+            </div>
             <Button variant="text" color="primary" onClick={toggleDrawer(true)}>
               历史记录
               <ReceiptLongIcon fontSize="small" />

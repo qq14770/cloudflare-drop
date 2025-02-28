@@ -9,10 +9,14 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import zh from 'dayjs/locale/zh-cn'
 import { useDialogs } from '@toolpad/core/useDialogs'
+import Backdrop from '@mui/material/Backdrop'
 
-import { fetchPlainText } from '../api'
+import { fetchFile, fetchPlainText } from '../api'
 import { copyToClipboard } from '../common'
 import { BasicDialog } from './BasicDialog'
+import { PasswordSwitch } from './PasswordSwitch.tsx'
+import LockClose from '@mui/icons-material/Lock'
+import LockOpen from '@mui/icons-material/LockOpen'
 
 dayjs.extend(relativeTime)
 dayjs.locale(zh)
@@ -31,7 +35,13 @@ export function FileDialog({
 >) {
   const dialogs = useDialogs()
   const isText = payload.type === 'plain/string'
-  const [text, updateText] = useState('')
+  const [text, updateText] = useState(
+    payload.is_encrypted ? '分享已加密，请使用密码解密' : '',
+  )
+  const [password, updatePassword] = useState('')
+  const [backdrop] = useState(payload.is_encrypted ?? false)
+
+  const showPassword = !password && payload.is_encrypted
 
   const handleCopy = (str: string) => {
     copyToClipboard(str)
@@ -45,8 +55,9 @@ export function FileDialog({
 
   useEffect(() => {
     if (isText) {
+      if (showPassword) return
       ;(async () => {
-        const data = await fetchPlainText(payload.id)
+        const data = await fetchPlainText(payload.id, password)
         updateText(data)
       })()
     }
@@ -66,6 +77,29 @@ export function FileDialog({
     }
   }
 
+  const handlePasswordChange = async (password: string) => {
+    try {
+      const data = await fetchPlainText(payload.id, password)
+      updateText(data)
+      updatePassword(password)
+    } catch (_e) {
+      payload.message.error('解密失败')
+    }
+  }
+
+  const handlePasswordDownload = async (password: string) => {
+    if (!password) {
+      updatePassword('')
+      return
+    }
+    try {
+      await fetchFile(payload.id, password, payload.filename)
+      updatePassword(password)
+    } catch (_e) {
+      payload.message.error('解密失败')
+    }
+  }
+
   return (
     <BasicDialog
       open={open}
@@ -75,21 +109,40 @@ export function FileDialog({
       <Box>
         {isText && (
           <Box>
-            <TextField
-              multiline
-              fullWidth
-              rows={10}
-              value={text}
-              disabled
-              sx={(theme) => ({
-                '& .MuiInputBase-root': {
-                  color: theme.palette.text.primary,
-                },
-                textarea: {
-                  '-webkit-text-fill-color': 'currentColor !important',
-                },
-              })}
-            />
+            <Box className="relative">
+              <TextField
+                multiline
+                fullWidth
+                rows={10}
+                value={text}
+                disabled
+                sx={(theme) => ({
+                  '& .MuiInputBase-root': {
+                    color: theme.palette.text.primary,
+                    filter: showPassword ? 'blur(1px)' : 'none',
+                  },
+                  textarea: {
+                    '-webkit-text-fill-color': 'currentColor !important',
+                  },
+                })}
+              />
+              {showPassword && (
+                <Backdrop
+                  className="absolute"
+                  sx={(theme) => ({
+                    color: '#fff',
+                    zIndex: theme.zIndex.drawer + 1,
+                  })}
+                  open={backdrop}
+                >
+                  <PasswordSwitch
+                    actionable
+                    value={password}
+                    onChange={handlePasswordChange}
+                  ></PasswordSwitch>
+                </Backdrop>
+              )}
+            </Box>
             <Button
               variant="contained"
               onClick={() => handleCopy(text)}
@@ -117,38 +170,77 @@ export function FileDialog({
                 ? ` (${(payload.size / (1000 * 1000)).toFixed(1)}M)`
                 : ''}
             </Typography>
-            <Button
-              variant="contained"
-              href={`/files/${payload.id}`}
-              sx={(theme) => ({
-                mt: 1,
-                pl: 4,
-                pr: 4,
-                width: 200,
-                [theme.breakpoints.down('sm')]: {
-                  width: '100%',
-                },
-              })}
-            >
-              下载
-            </Button>
+            {!payload.is_encrypted && (
+              <Button
+                variant="contained"
+                href={`/files/${payload.id}`}
+                sx={(theme) => ({
+                  mt: 1,
+                  pl: 4,
+                  pr: 4,
+                  width: 200,
+                  [theme.breakpoints.down('sm')]: {
+                    width: '100%',
+                  },
+                })}
+              >
+                下载
+              </Button>
+            )}
+            {payload.is_encrypted && (
+              <PasswordSwitch
+                actionable
+                value={password}
+                onChange={handlePasswordDownload}
+              >
+                {(openPassword) => (
+                  <Button
+                    startIcon={!password ? <LockClose /> : <LockOpen />}
+                    variant="contained"
+                    color={!password ? 'warning' : 'primary'}
+                    sx={(theme) => ({
+                      mt: 1,
+                      pl: 4,
+                      pr: 4,
+                      width: 200,
+                      [theme.breakpoints.down('sm')]: {
+                        width: '100%',
+                      },
+                    })}
+                    onClick={async () => {
+                      if (!password) {
+                        await openPassword()
+                        return
+                      }
+                      handlePasswordDownload(password)
+                    }}
+                  >
+                    下载
+                  </Button>
+                )}
+              </PasswordSwitch>
+            )}
           </Box>
         )}
         <Box sx={{ mt: 2 }}>
-          <Typography variant="body2" color="textDisabled">
-            原始分享 SHA1 Hash 值{' '}
-            <a target="_blank" href="https://www.lzltool.com/data-hash">
-              (校验工具)
-            </a>
-            {'：'}
-          </Typography>
-          <Typography
-            className="mt-1"
-            variant="body2"
-            onClick={() => handleCopy(payload.hash)}
-          >
-            {payload.hash}
-          </Typography>
+          {!payload.is_encrypted && (
+            <>
+              <Typography variant="body2" color="textDisabled">
+                原始分享 SHA1 Hash 值{' '}
+                <a target="_blank" href="https://www.lzltool.com/data-hash">
+                  (校验工具)
+                </a>
+                {'：'}
+              </Typography>
+              <Typography
+                className="mt-1"
+                variant="body2"
+                onClick={() => handleCopy(payload.hash)}
+              >
+                {payload.hash}
+              </Typography>
+            </>
+          )}
           <Typography className="mt-1" variant="body2" color="textDisabled">
             {payload.due_date ? '预计过期于：' : '永久有效'}
           </Typography>

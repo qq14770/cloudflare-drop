@@ -51,6 +51,21 @@ export class FileCreate extends Endpoint {
     },
   }
 
+  private getFormDataField<T>(
+    formData: FormData,
+    fieldName: string,
+    defaultValue: T,
+  ): T {
+    const value = formData.get(fieldName) as string
+    if (!value) return defaultValue
+    try {
+      return JSON.parse(value)
+    } catch (_e) {
+      //
+    }
+    return defaultValue
+  }
+
   async handle(c: Context) {
     let data: ArrayBuffer | null = null
     let filename: string
@@ -58,6 +73,7 @@ export class FileCreate extends Endpoint {
     let size: number = 0
     let duration: string = c.env.SHARE_DURATION
     let isEphemeral = false
+    let isEncrypted = false
     const contentType = c.req.header('Content-Type')
     if (
       contentType?.startsWith('multipart/form-data') ||
@@ -65,22 +81,10 @@ export class FileCreate extends Endpoint {
     ) {
       const formData = await c.req.formData()
       const file = formData.get('file') as File
-      const durationData = formData.get('duration') as string
-      if (durationData) {
-        try {
-          duration = JSON.parse(durationData)
-        } catch (_e) {
-          //
-        }
-      }
-      const isEphemeralData = formData.get('isEphemeral') as string
-      if (isEphemeralData) {
-        try {
-          isEphemeral = JSON.parse(isEphemeralData)
-        } catch (_e) {
-          //
-        }
-      }
+
+      duration = this.getFormDataField(formData, 'duration', duration)
+      isEphemeral = this.getFormDataField(formData, 'isEphemeral', isEphemeral)
+      isEncrypted = this.getFormDataField(formData, 'isEncrypted', isEncrypted)
 
       data = await file.arrayBuffer()
       filename = file.name
@@ -151,6 +155,7 @@ export class FileCreate extends Endpoint {
       due_date: dueDate,
       size,
       is_ephemeral: isEphemeral,
+      is_encrypted: isEncrypted,
     }
 
     const [record] = await db.insert(files).values(insert).returning({
@@ -158,6 +163,7 @@ export class FileCreate extends Endpoint {
       code: files.code,
       due_date: files.due_date,
       is_ephemeral: files.is_ephemeral,
+      is_encrypted: files.is_encrypted,
     })
 
     return {

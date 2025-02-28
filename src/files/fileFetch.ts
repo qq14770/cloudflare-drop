@@ -69,9 +69,10 @@ export class FileFetch extends Endpoint {
         'Content-Type': isText
           ? 'plain/text'
           : (record.type ?? 'application/octet-stream'),
-        'Content-Disposition': isText
-          ? 'inline'
-          : `attachment; filename="${record.filename}"`,
+        'Content-Disposition':
+          isText || record.is_encrypted
+            ? 'inline'
+            : `attachment; filename="${record.filename}"`,
       }),
     })
   }

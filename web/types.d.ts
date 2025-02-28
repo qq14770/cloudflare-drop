@@ -7,12 +7,14 @@ interface FileType {
   type: string
   size: number
   is_ephemeral?: boolean
+  is_encrypted?: boolean
 }
 
 interface FileUploadedType {
   hash: string
   code: string
   due_date: number
+  is_encrypted?: boolean
 }
 
 interface ApiResponseType<T> {

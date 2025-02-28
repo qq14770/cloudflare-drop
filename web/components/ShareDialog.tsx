@@ -31,7 +31,7 @@ export function ShareDialog({
   }
 >) {
   const url = `${window.location.protocol}//${window.location.host}?code=${payload.code}`
-  const desc = `链接: ${url} 提取码: ${payload.code} SHA1 Hash 值: ${payload.hash}`
+  const desc = `链接: ${url} 提取码: ${payload.code} ${payload.is_encrypted ? '' : ` SHA1 Hash 值: ${payload.hash}`} `
   const qr = useRef(
     new QrCode({
       content: url,
