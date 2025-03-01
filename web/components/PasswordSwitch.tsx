@@ -56,7 +56,7 @@ function PasswordDialog({
   }, [])
 
   return (
-    <Dialog fullWidth open={open} onClose={() => onClose(null)}>
+    <Dialog open={open} onClose={() => onClose(null)}>
       <DialogTitle>分享密码</DialogTitle>
       <DialogContent>
         <OutlinedInput
@@ -83,7 +83,12 @@ function PasswordDialog({
           采用 AES-GCM 端对端加密，服务器不保存密码，密码丢失数据将无法恢复
         </FormHelperText>
       </DialogContent>
-      <DialogActions>
+      <DialogActions
+        sx={{
+          p: 4,
+          pt: 0,
+        }}
+      >
         {showClear && (
           <Button
             className="flex-1"

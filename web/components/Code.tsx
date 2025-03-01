@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'preact/hooks'
 import TextField from '@mui/material/TextField'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 
 interface CodeProps {
   length: number
@@ -17,6 +16,8 @@ function isValidateCode(str: string | string[], length = 6) {
     /^[a-zA-Z\d]$/.test(d),
   )
 }
+
+let isComposition = false
 
 export function Code({ length, value, onChange, disabled }: CodeProps) {
   const [codes, updateCodes] = useState<Array<string>>(
@@ -69,22 +70,11 @@ export function Code({ length, value, onChange, disabled }: CodeProps) {
   }
 
   const handleInput = (e: InputEvent, index: number) => {
-    if (disabled) return
+    if (disabled || isComposition) return
     e.preventDefault()
     e.stopPropagation()
     const target: HTMLInputElement = e.target as HTMLInputElement
     const value = target.value.slice(0, 1).toUpperCase()
-    //
-    // if (!value) {
-    //   const values = [...codes]
-    //   values[index] = ''
-    //   updateCodes(values)
-    //   if (index > 0) {
-    //     handleAutoFocus(index - 1)
-    //   }
-    //   return
-    // }
-
     if (!/^[a-zA-Z\d]$/.test(value)) {
       target.value = ''
       return
@@ -132,12 +122,19 @@ export function Code({ length, value, onChange, disabled }: CodeProps) {
     handleAutoFocus(index + paste.length)
   }
 
+  const handleCompositionStart = () => {
+    isComposition = true
+  }
+
+  const handleCompositionEnd = () => {
+    isComposition = false
+  }
+
   return (
     <Box ref={el} className="flex gap-2">
       {new Array(length).fill(1).map((_, index) => (
         <Box className="relative">
           <TextField
-            type="password" // 禁用中文输入法
             value={codes[index] ?? ''}
             sx={{
               '.MuiInputBase-root': {
@@ -147,22 +144,20 @@ export function Code({ length, value, onChange, disabled }: CodeProps) {
               '.MuiInputBase-root input': {
                 paddingBlock: '0.4em',
                 textAlign: 'center',
-                WebkitTextFillColor: 'transparent !important',
-                letterSpacing: '0.5em',
               },
             }}
             slotProps={{
               htmlInput: {
                 'data-bwignore': 'off',
+                inputmode: 'email',
               },
             }}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
             onInput={(e) => handleInput(e, index)}
             onKeyUp={(e) => handleKeyUp(e, index)}
             onPaste={(e) => handlePaste(e, index)}
           />
-          <Box className="pointer-events-none absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center">
-            <Typography variant="h4">{codes[index] ?? ''}</Typography>
-          </Box>
         </Box>
       ))}
     </Box>

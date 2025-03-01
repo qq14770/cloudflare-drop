@@ -78,6 +78,10 @@ export function FileDialog({
   }
 
   const handlePasswordChange = async (password: string) => {
+    if (!password) {
+      updatePassword('')
+      return
+    }
     try {
       const data = await fetchPlainText(payload.id, password)
       updateText(data)
