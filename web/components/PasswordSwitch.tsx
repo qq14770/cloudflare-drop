@@ -75,6 +75,16 @@ function PasswordDialog({
               </IconButton>
             </InputAdornment>
           }
+          slotProps={{
+            input: {
+              // @ts-expect-error data-attr
+              'data-bwignore': 'off',
+              autocomplete: 'off',
+              'data-1p-ignore': true,
+              'data-lpignore': true,
+              'data-protonpass-ignore': true,
+            },
+          }}
           fullWidth
           value={result}
           onChange={(event) => setResult(event.currentTarget.value)}
