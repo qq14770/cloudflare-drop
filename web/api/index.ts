@@ -1,5 +1,6 @@
-import axios, { AxiosProgressEvent } from 'axios'
+import { AxiosProgressEvent } from 'axios'
 import { Encryptor } from '../helpers'
+import { Uploader } from './uploader.ts'
 
 async function processResponse(response: Response) {
   if (response.ok) return await response.json()
@@ -38,10 +39,7 @@ export async function uploadFile(
   formData.append('isEphemeral', JSON.stringify(isEphemeral))
   formData.append('duration', JSON.stringify(duration))
   try {
-    const { data } = await axios.put('/files', formData, {
-      onUploadProgress: onUpload,
-    })
-    return data as ApiResponseType<FileUploadedType>
+    return Uploader.upload(formData, onUpload)
   } catch (e) {
     return {
       result: false,

@@ -23,10 +23,10 @@ function numberRandom() {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-async function sha1(data: ArrayBuffer) {
+async function sha256(data: ArrayBuffer) {
   const digest = await crypto.subtle.digest(
     {
-      name: 'SHA-1',
+      name: 'SHA-256',
     },
     data,
   )
@@ -68,12 +68,14 @@ export class FileCreate extends Endpoint {
 
   async handle(c: Context) {
     let data: ArrayBuffer | null = null
-    let filename: string
-    let type: string | null
+    let filename: string = ''
+    let type: string | null = null
     let size: number = 0
     let duration: string = c.env.SHARE_DURATION
     let isEphemeral = false
     let isEncrypted = false
+    let objectId = ''
+    let hash = ''
     const contentType = c.req.header('Content-Type')
     if (
       contentType?.startsWith('multipart/form-data') ||
@@ -82,14 +84,30 @@ export class FileCreate extends Endpoint {
       const formData = await c.req.formData()
       const file = formData.get('file') as File
 
+      const fileInfo = this.getFormDataField<null | {
+        objectId: string
+        name: string
+        type?: string
+        size: number
+        sha: string
+      }>(formData, 'fileInfo', null)
+
       duration = this.getFormDataField(formData, 'duration', duration)
       isEphemeral = this.getFormDataField(formData, 'isEphemeral', isEphemeral)
       isEncrypted = this.getFormDataField(formData, 'isEncrypted', isEncrypted)
 
-      data = await file.arrayBuffer()
-      filename = file.name
-      type = file.type ?? mine.getType(filename) ?? 'text/plain'
-      size = file.size
+      if (file) {
+        data = await file.arrayBuffer()
+        filename = file.name
+        type = file.type ?? mine.getType(filename) ?? 'text/plain'
+        size = file.size
+      } else if (fileInfo) {
+        filename = fileInfo.name
+        type = fileInfo.type ?? mine.getType(filename) ?? 'text/plain'
+        size = fileInfo.size
+        objectId = fileInfo.objectId
+        hash = fileInfo.sha
+      }
     } else {
       const blob = await c.req.blob()
       data = await blob.arrayBuffer()
@@ -98,7 +116,7 @@ export class FileCreate extends Endpoint {
       size = blob.size
     }
 
-    if (!data || data.byteLength === 0) {
+    if ((!data || data.byteLength === 0) && !objectId) {
       return this.error('分享内容为空')
     }
 
@@ -110,9 +128,16 @@ export class FileCreate extends Endpoint {
     }
 
     const kv = this.getKV(c)
-    const key = createId()
-    await kv.put(key, data)
-    const hash = await sha1(data)
+    const key = objectId || createId()
+    if (data && data.byteLength) {
+      await kv.put(key, data)
+      hash = await sha256(data)
+    } else {
+      const cacheFile = await kv.get(objectId, 'stream')
+      if (!cacheFile) {
+        return this.error('分片上传的文件不存在')
+      }
+    }
 
     const db = this.getDB(c)
 

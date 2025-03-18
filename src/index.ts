@@ -5,7 +5,14 @@ import {
   limitMiddleware,
   terminalMiddleware,
 } from './middlewares'
-import { FileCreate, FileFetch, FileShareCodeFetch } from './files'
+import {
+  FileChunkCreate,
+  FileCreate,
+  FileFetch,
+  FileShareCodeFetch,
+  GetFileChunkInfo,
+  MergeFileChunk,
+} from './files'
 
 import { scheduled } from './scheduled'
 
@@ -26,6 +33,9 @@ const openapi = fromHono(app, {
 })
 
 openapi.put('/files', FileCreate)
+openapi.post('/files/chunks', GetFileChunkInfo)
+openapi.put('/files/chunks', FileChunkCreate)
+openapi.post('/files/chunks/merged', MergeFileChunk)
 openapi.get('/files/:id', FileFetch)
 openapi.get('/files/share/:code', FileShareCodeFetch)
 

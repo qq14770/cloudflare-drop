@@ -31,7 +31,7 @@ export function ShareDialog({
   }
 >) {
   const url = `${window.location.protocol}//${window.location.host}?code=${payload.code}`
-  const desc = `链接: ${url} 提取码: ${payload.code} ${payload.is_encrypted ? '' : ` SHA1 Hash 值: ${payload.hash}`} `
+  const desc = `链接: ${url} 提取码: ${payload.code} ${payload.is_encrypted ? '' : ` SHA256 Hash 值: ${payload.hash}`} `
   const qr = useRef(
     new QrCode({
       content: url,
@@ -86,7 +86,7 @@ export function ShareDialog({
                 color: theme.palette.text.primary,
               },
               textarea: {
-                '-webkit-text-fill-color': 'currentColor !important',
+                WebkitTextFillColor: 'currentColor !important',
               },
             })}
           />
@@ -108,7 +108,7 @@ export function ShareDialog({
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="body2" color="textDisabled">
-            原始分享 SHA1 Hash 值{' '}
+            原始分享 SHA256 Hash 值{' '}
             <a target="_blank" href="https://www.lzltool.com/data-hash">
               (校验工具)
             </a>
@@ -118,6 +118,9 @@ export function ShareDialog({
             className="mt-1"
             variant="body2"
             onClick={() => handleCopy(payload.hash)}
+            sx={{
+              wordBreak: 'break-all',
+            }}
           >
             {payload.hash}
           </Typography>
