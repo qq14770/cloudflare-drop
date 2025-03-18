@@ -55,8 +55,23 @@ export class Uploader {
         const chunk = file.slice(start, end)
         tasks.push(this.uploadWithChunk(chunk))
       }
-      const data = await Promise.all(tasks)
-      console.log(data)
+      const chunkInfo = (await Promise.all(tasks)).map((d, i) => ({
+        ...d,
+        chunkId: i,
+      }))
+      formData.delete('file') // 移除 file
+      formData.append(
+        'fileInfo',
+        JSON.stringify({
+          objectId: chunkInfo,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          sha: await this.getSHA(file),
+        }),
+      )
+      const { data } = await axios.put('/files', formData)
+      return data as ApiResponseType<FileUploadedType>
     }
     throw new Error('建议使用 R2')
   }

@@ -50,13 +50,47 @@ export class FileFetch extends Endpoint {
     }
     const objectId = record.objectId
 
-    const file = await kv.get(objectId, 'arrayBuffer')
+    const {
+      value: file,
+      metadata,
+    }: {
+      value: null | ArrayBuffer
+      metadata: null | Array<{
+        objectId: string
+        chunkId: number
+      }>
+    } = await kv.getWithMetadata(objectId, 'arrayBuffer')
 
-    if (!file) {
+    if (!file && !metadata) {
       return new Response('Not found', {
         status: 404,
         headers: {
           'Content-Type': 'plain/text',
+        },
+      })
+    }
+
+    if (metadata) {
+      // 大于 25M 不考虑文件类型
+      const { readable, writable } = new TransformStream()
+      const writer = writable.getWriter()
+      ;(async () => {
+        for (let i = 0; i < metadata.length; i++) {
+          const chunk = await kv.get(metadata[i].objectId, 'arrayBuffer')
+          if (!chunk) {
+            await writer.close()
+            throw new Error('文件 Chunk 不完整')
+          }
+          await writer.write(new Uint8Array(chunk))
+        }
+        await writer.close()
+      })().then()
+
+      return new Response(readable, {
+        status: 200,
+        headers: {
+          'Content-Type': record.type ?? 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${record.filename}"`,
         },
       })
     }

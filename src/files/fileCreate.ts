@@ -74,7 +74,7 @@ export class FileCreate extends Endpoint {
     let duration: string = c.env.SHARE_DURATION
     let isEphemeral = false
     let isEncrypted = false
-    let objectId = ''
+    let objectId: string | Array<{ objectId: string }> = ''
     let hash = ''
     const contentType = c.req.header('Content-Type')
     if (
@@ -85,7 +85,7 @@ export class FileCreate extends Endpoint {
       const file = formData.get('file') as File
 
       const fileInfo = this.getFormDataField<null | {
-        objectId: string
+        objectId: string | Array<{ objectId: string }>
         name: string
         type?: string
         size: number
@@ -116,7 +116,10 @@ export class FileCreate extends Endpoint {
       size = blob.size
     }
 
-    if ((!data || data.byteLength === 0) && !objectId) {
+    if (
+      (!data || data.byteLength === 0) &&
+      (!objectId || (Array.isArray(objectId) && !objectId.length))
+    ) {
       return this.error('分享内容为空')
     }
 
@@ -128,15 +131,22 @@ export class FileCreate extends Endpoint {
     }
 
     const kv = this.getKV(c)
-    const key = objectId || createId()
+    const key = objectId && !Array.isArray(objectId) ? objectId : createId()
+    // 直接上传
     if (data && data.byteLength) {
       await kv.put(key, data)
       hash = await sha256(data)
-    } else {
+      // 单个
+    } else if (typeof objectId === 'string') {
       const cacheFile = await kv.get(objectId, 'stream')
       if (!cacheFile) {
         return this.error('分片上传的文件不存在')
       }
+      // 分片存储
+    } else if (Array.isArray(objectId) && objectId.length) {
+      await kv.put(key, 'chunks', {
+        metadata: objectId,
+      })
     }
 
     const db = this.getDB(c)
