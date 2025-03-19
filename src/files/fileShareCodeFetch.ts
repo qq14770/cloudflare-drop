@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { DrizzleD1Database } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
+import { createId } from '@paralleldrive/cuid2'
 
 import { files, fileSelectSchema } from '../../data/schemas'
 import { MAX_DURATION } from '../common'
@@ -86,8 +87,13 @@ export class FileShareCodeFetch extends Endpoint {
         .where(eq(files.id, rest.id))
     }
 
+    const token = createId()
+    const kv = this.getKV(c)
+    await kv.put(token, token)
+
     return this.success({
       ...rest,
+      token,
       due_date: day.isSame(MAX_DURATION) ? null : file.due_date,
     })
   }

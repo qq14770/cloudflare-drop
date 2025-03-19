@@ -14,7 +14,7 @@ async function processResponse(response: Response) {
 
 export async function resolveFileByCode(
   code: string,
-): Promise<ApiResponseType<FileType>> {
+): Promise<ApiResponseType<FileType & { token: string }>> {
   const response = await fetch(`/files/share/${code}`)
   return processResponse(response)
 }
@@ -52,8 +52,9 @@ export async function uploadFile(
 export async function fetchPlainText(
   id: string,
   password?: string,
+  token?: string,
 ): Promise<string> {
-  const response = await fetch(`/files/${id}`)
+  const response = await fetch(`/files/${id}?token=${token}`)
   if (!password) {
     return response.text()
   }
@@ -67,11 +68,12 @@ export async function fetchFile(
   id: string,
   password: string,
   filename: string,
+  token?: string,
   onDownload?: (e: AxiosProgressEvent) => void,
 ): Promise<[file: Blob, error: Error | null]> {
   let blob: Blob
   if (!cacheFile) {
-    const response = await axios.get(`/files/${id}`, {
+    const response = await axios.get(`/files/${id}?token=${token}`, {
       responseType: 'blob',
       onDownloadProgress: onDownload,
     })

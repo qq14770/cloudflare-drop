@@ -11,6 +11,9 @@ export class FileFetch extends Endpoint {
       params: z.object({
         id: z.string(),
       }),
+      query: z.object({
+        token: z.string(),
+      }),
     },
     responses: {
       '200': {
@@ -37,16 +40,17 @@ export class FileFetch extends Endpoint {
   async handle(c: Context) {
     const data = await this.getValidatedData<typeof this.schema>()
     const id = data.params.id
+    const token = data.query.token
+    const kv = this.getKV(c)
+    const tokenValue = await kv.get(token, 'text')
+    if (!tokenValue || tokenValue !== token) {
+      return this.error('无效的 token', true)
+    }
+    await kv.delete(token)
     const db = this.getDB(c)
     const [record] = await db.select().from(files).where(eq(files.id, id))
-    const kv = this.getKV(c)
     if (!record) {
-      return new Response('Invalid object ID', {
-        status: 400,
-        headers: {
-          'Content-Type': 'plain/text',
-        },
-      })
+      return this.error('无效的 object id', true)
     }
     const objectId = record.objectId
 
@@ -62,12 +66,7 @@ export class FileFetch extends Endpoint {
     } = await kv.getWithMetadata(objectId, 'arrayBuffer')
 
     if (!file && !metadata) {
-      return new Response('Not found', {
-        status: 404,
-        headers: {
-          'Content-Type': 'plain/text',
-        },
-      })
+      return this.error('Not found', true, 404)
     }
 
     if (metadata) {

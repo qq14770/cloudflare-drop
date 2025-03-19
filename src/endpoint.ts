@@ -18,7 +18,15 @@ export class Endpoint extends OpenAPIRoute {
     return c.env.file_drops
   }
 
-  error(message: string) {
+  error(message: string, text?: boolean, code?: number) {
+    if (text) {
+      return new Response(message, {
+        status: code ?? 400,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+        },
+      })
+    }
     return {
       message,
       result: false,

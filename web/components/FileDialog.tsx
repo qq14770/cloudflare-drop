@@ -32,6 +32,7 @@ export function FileDialog({
       error(message: string): void
       success(message: string): void
     }
+    token?: string
   }
 >) {
   const dialogs = useDialogs()
@@ -62,7 +63,7 @@ export function FileDialog({
     if (isText) {
       if (showPassword) return
       ;(async () => {
-        const data = await fetchPlainText(payload.id, password)
+        const data = await fetchPlainText(payload.id, password, payload.token)
         updateText(data)
       })()
     }
@@ -88,7 +89,7 @@ export function FileDialog({
       return
     }
     try {
-      const data = await fetchPlainText(payload.id, password)
+      const data = await fetchPlainText(payload.id, password, payload.token)
       updateText(data)
       updatePassword(password)
     } catch (_e) {
@@ -112,6 +113,7 @@ export function FileDialog({
         payload.id,
         password,
         payload.filename,
+        payload.token,
         (e: AxiosProgressEvent) => {
           updateProgress(e.loaded)
         },
@@ -202,7 +204,7 @@ export function FileDialog({
             {!payload.is_encrypted && (
               <Button
                 variant="contained"
-                href={`/files/${payload.id}`}
+                href={`/files/${payload.id}?token=${payload.token}`}
                 sx={(theme) => ({
                   mt: 1,
                   pl: 4,
