@@ -89,7 +89,9 @@ export class FileShareCodeFetch extends Endpoint {
 
     const token = createId()
     const kv = this.getKV(c)
-    await kv.put(token, token)
+    await kv.put(token, token, {
+      expirationTtl: 60 * 5,
+    })
 
     return this.success({
       ...rest,
