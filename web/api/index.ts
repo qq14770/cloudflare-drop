@@ -1,4 +1,4 @@
-import { AxiosProgressEvent } from 'axios'
+import axios, { AxiosProgressEvent } from 'axios'
 import { Encryptor } from '../helpers'
 import { Uploader } from './uploader.ts'
 
@@ -63,23 +63,38 @@ export async function fetchPlainText(
 }
 
 export async function fetchFile(
+  cacheFile: Blob | null,
   id: string,
   password: string,
   filename: string,
-) {
-  const response = await fetch(`/files/${id}`)
-  const blob = await response.blob()
-  const decryptedBlob = await Encryptor.decrypt(password, blob)
-  const file = new File([decryptedBlob], filename, {
-    type: decryptedBlob.type,
-  })
-  const url = URL.createObjectURL(file)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
+  onDownload?: (e: AxiosProgressEvent) => void,
+): Promise<[file: Blob, error: Error | null]> {
+  let blob: Blob
+  if (!cacheFile) {
+    const response = await axios.get(`/files/${id}`, {
+      responseType: 'blob',
+      onDownloadProgress: onDownload,
+    })
+    blob = response.data
+  } else {
+    blob = cacheFile
+  }
+  try {
+    const decryptedBlob = await Encryptor.decrypt(password, blob)
+    const file = new File([decryptedBlob], filename, {
+      type: decryptedBlob.type,
+    })
+    const url = URL.createObjectURL(file)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
 
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    return [blob, e as Error]
+  }
+  return [blob, null]
 }

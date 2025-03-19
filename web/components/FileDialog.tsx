@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks'
+import { AxiosProgressEvent } from 'axios'
 import { DialogProps } from '@toolpad/core/useDialogs'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
@@ -40,6 +41,10 @@ export function FileDialog({
   )
   const [password, updatePassword] = useState('')
   const [backdrop] = useState(payload.is_encrypted ?? false)
+
+  const [downloading, updateDownloading] = useState(false)
+  const [progress, updateProgress] = useState(0)
+  const [file, setFile] = useState<Blob | null>(null)
 
   const showPassword = !password && payload.is_encrypted
 
@@ -96,12 +101,32 @@ export function FileDialog({
       updatePassword('')
       return
     }
+
     try {
-      await fetchFile(payload.id, password, payload.filename)
-      updatePassword(password)
+      if (!file) {
+        updateDownloading(true)
+        updateProgress(0)
+      }
+      const [originFile, e] = await fetchFile(
+        file,
+        payload.id,
+        password,
+        payload.filename,
+        (e: AxiosProgressEvent) => {
+          updateProgress(e.loaded)
+        },
+      )
+      if (!e) {
+        updatePassword(password)
+      } else {
+        payload.message.error('解密失败')
+      }
+      setFile(originFile)
     } catch (_e) {
       payload.message.error('解密失败')
     }
+    updateDownloading(false)
+    updateProgress(0)
   }
 
   return (
@@ -199,6 +224,8 @@ export function FileDialog({
               >
                 {(openPassword) => (
                   <Button
+                    loading={downloading}
+                    loadingIndicator={`下载中(${((progress / payload.size) * 100).toFixed(1)}%)...`}
                     startIcon={!password ? <LockClose /> : <LockOpen />}
                     variant="contained"
                     color={!password ? 'warning' : 'primary'}
