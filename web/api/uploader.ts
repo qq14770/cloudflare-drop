@@ -12,6 +12,8 @@ interface ChunkInfo {
   finished: Array<number>
 }
 
+type UploadCallback = { (progressEvent: AxiosProgressEvent): void }
+
 export class Uploader {
   static KV_CHUNK_SIZE = 25 * 1024 * 1024
   static MAX_KV_CHUNK_SIZE = 100 * 1024 * 1024
@@ -19,7 +21,7 @@ export class Uploader {
 
   static async upload(
     formData: FormData,
-    onUpload?: (progressEvent: AxiosProgressEvent) => void,
+    onUpload?: UploadCallback,
   ): Promise<ApiResponseType<FileUploadedType>> {
     const file: Blob | null = formData.get('file') as Blob
     // 使用默认的上传
@@ -30,7 +32,7 @@ export class Uploader {
       return data as ApiResponseType<FileUploadedType>
     }
     if (file.size <= this.KV_CHUNK_SIZE) {
-      const { objectId, sha } = await this.uploadWithChunk(file)
+      const { objectId, sha } = await this.uploadWithChunk(file, onUpload)
       formData.delete('file') // 移除 file
       formData.append(
         'fileInfo',
@@ -49,16 +51,25 @@ export class Uploader {
       const size = file.size
       const chunkSize = file.size / this.KV_CHUNK_SIZE
       const tasks = []
+      const uploadHandler = this.createMergedProgressEventHandler(
+        size,
+        chunkSize,
+        onUpload,
+      )
+
       for (let i = 0; i < chunkSize; i++) {
         const start = i * this.KV_CHUNK_SIZE
         const end = Math.min(start + this.KV_CHUNK_SIZE, size)
         const chunk = file.slice(start, end)
-        tasks.push(this.uploadWithChunk(chunk))
+        tasks.push(
+          this.uploadWithChunk(chunk, (e) => uploadHandler.onUpload(e, i)),
+        )
       }
       const chunkInfo = (await Promise.all(tasks)).map((d, i) => ({
         ...d,
         chunkId: i,
       }))
+      uploadHandler.finished()
       formData.delete('file') // 移除 file
       formData.append(
         'fileInfo',
@@ -76,7 +87,10 @@ export class Uploader {
     throw new Error('建议使用 R2')
   }
 
-  static async uploadWithChunk(blob: Blob): Promise<{
+  static async uploadWithChunk(
+    blob: Blob,
+    onUpload?: UploadCallback,
+  ): Promise<{
     objectId: string
     sha: string
   }> {
@@ -95,28 +109,49 @@ export class Uploader {
     const chunkInfo = await this.getChunkInfo({
       sha,
       uuid,
-      size: blob.size,
+      size,
       chunks,
     })
+
+    const uploadHandler = this.createMergedProgressEventHandler(
+      size,
+      totalChunks,
+      onUpload,
+    )
 
     const tasks: Array<Promise<unknown>> = []
 
     for (let i = 0; i < totalChunks; i++) {
-      if (chunkInfo.finished.includes(i)) {
-        continue
-      }
       const start = i * this.CHUNK_SIZE
       const end = Math.min(start + this.CHUNK_SIZE, size)
       const chunk = blob.slice(start, end)
+      if (chunkInfo.finished.includes(i)) {
+        uploadHandler.onUpload(
+          {
+            loaded: end - start,
+            lengthComputable: true,
+            bytes: end - start,
+            total: end - start,
+            progress: 1,
+            upload: true,
+          },
+          i,
+        )
+        continue
+      }
       const formData = new FormData()
       formData.append('chunk', chunk)
       formData.append('chunkId', `${i}`)
       formData.append('uuid', uuid)
       formData.append('sha', sha)
-      tasks.push(this.uploadChunk(formData))
+      tasks.push(
+        this.uploadChunk(formData, (e) => uploadHandler.onUpload(e, i)),
+      )
     }
 
     await Promise.all(tasks)
+
+    uploadHandler.finished()
     // 告知合并
     const mergedResponse = await fetch('/files/chunks/merged', {
       method: 'POST',
@@ -133,10 +168,56 @@ export class Uploader {
     return { objectId: data.data!, sha }
   }
 
-  private static async uploadChunk(formData: FormData) {
-    return fetch('/files/chunks', {
-      method: 'PUT',
-      body: formData,
+  private static createMergedProgressEventHandler(
+    size: number,
+    total: number,
+    onUpload?: UploadCallback,
+  ) {
+    const progresses: Map<number, AxiosProgressEvent> = new Map()
+    let prevTotal = 0
+
+    return {
+      onUpload: (e: AxiosProgressEvent, chunkId: number) => {
+        progresses.set(chunkId, e)
+        const totalLoaded = Array.from(progresses.values()).reduce(
+          (sum, loaded) => sum + loaded.loaded,
+          0,
+        )
+        if (onUpload) {
+          onUpload({
+            bytes: totalLoaded - prevTotal,
+            lengthComputable: true,
+            loaded: totalLoaded,
+            total: size,
+            progress: totalLoaded / size,
+            upload:
+              progresses.size === total &&
+              Array.from(progresses.values()).every((d) => d.upload),
+          })
+        }
+        prevTotal = totalLoaded
+      },
+      finished: () => {
+        if (onUpload) {
+          onUpload({
+            bytes: 0,
+            lengthComputable: true,
+            loaded: size,
+            total: size,
+            progress: 1,
+            upload: true,
+          })
+        }
+      },
+    }
+  }
+
+  private static async uploadChunk(
+    formData: FormData,
+    onUpload?: UploadCallback,
+  ) {
+    return axios.put('/files/chunks', formData, {
+      onUploadProgress: onUpload,
     })
   }
 

@@ -51,7 +51,9 @@ export class GetFileChunkInfo extends Endpoint {
     const record: ChunkInfo | null = await kv.get(key, 'json')
 
     if (!record) {
-      await kv.put(key, JSON.stringify(payload))
+      await kv.put(key, JSON.stringify(payload), {
+        expirationTtl: 60 * 5,
+      })
 
       return this.success({
         ...payload,
