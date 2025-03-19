@@ -9,7 +9,10 @@ interface ChunkInfo {
     chunkId: number
     size: number
   }>
-  finished: Array<number>
+  finished: Array<{
+    chunkId: number
+    objectId: string
+  }>
 }
 
 type UploadCallback = { (progressEvent: AxiosProgressEvent): void }
@@ -50,22 +53,24 @@ export class Uploader {
     if (file.size <= this.MAX_KV_CHUNK_SIZE) {
       const size = file.size
       const chunkSize = file.size / this.KV_CHUNK_SIZE
-      const tasks = []
       const uploadHandler = this.createMergedProgressEventHandler(
         size,
         chunkSize,
         onUpload,
       )
+      const result = []
 
       for (let i = 0; i < chunkSize; i++) {
         const start = i * this.KV_CHUNK_SIZE
         const end = Math.min(start + this.KV_CHUNK_SIZE, size)
         const chunk = file.slice(start, end)
-        tasks.push(
-          this.uploadWithChunk(chunk, (e) => uploadHandler.onUpload(e, i)),
+        result.push(
+          await this.uploadWithChunk(chunk, (e) =>
+            uploadHandler.onUpload(e, i),
+          ),
         )
       }
-      const chunkInfo = (await Promise.all(tasks)).map((d, i) => ({
+      const chunkInfo = result.map((d, i) => ({
         ...d,
         chunkId: i,
       }))
@@ -119,13 +124,11 @@ export class Uploader {
       onUpload,
     )
 
-    const tasks: Array<Promise<unknown>> = []
-
     for (let i = 0; i < totalChunks; i++) {
       const start = i * this.CHUNK_SIZE
       const end = Math.min(start + this.CHUNK_SIZE, size)
       const chunk = blob.slice(start, end)
-      if (chunkInfo.finished.includes(i)) {
+      if (chunkInfo.finished.find((d) => d.chunkId === i)) {
         uploadHandler.onUpload(
           {
             loaded: end - start,
@@ -144,12 +147,8 @@ export class Uploader {
       formData.append('chunkId', `${i}`)
       formData.append('uuid', uuid)
       formData.append('sha', sha)
-      tasks.push(
-        this.uploadChunk(formData, (e) => uploadHandler.onUpload(e, i)),
-      )
+      await this.uploadChunk(formData, (e) => uploadHandler.onUpload(e, i))
     }
-
-    await Promise.all(tasks)
 
     uploadHandler.finished()
     // 告知合并

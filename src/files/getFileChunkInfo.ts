@@ -49,7 +49,6 @@ export class GetFileChunkInfo extends Endpoint {
     const kv = this.getKV(c)
     const key = `${payload.uuid}_${payload.sha}`
     const record: ChunkInfo | null = await kv.get(key, 'json')
-
     if (!record) {
       await kv.put(key, JSON.stringify(payload), {
         expirationTtl: 60 * 5,
@@ -63,9 +62,11 @@ export class GetFileChunkInfo extends Endpoint {
 
     const list = (
       await kv.list({
-        prefix: `${key}_`,
+        prefix: `${key}.`,
       })
     ).keys
+
+    console.log(list)
 
     const finished = list.map((d) => ({
       chunkId: Number.parseInt(d.name.split('.')[1]),
