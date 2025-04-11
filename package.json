@@ -36,6 +36,7 @@
     "mobx": "^6.13.5",
     "mobx-react-lite": "^4.1.0",
     "preact": "^10.25.3",
+    "preact-iso": "^2.9.1",
     "qrcode-svg": "^1.1.0",
     "zod": "^3.24.1"
   },

@@ -7,13 +7,13 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import zh from 'dayjs/locale/zh-cn'
 import QrCode from 'qrcode-svg'
 
-import { copyToClipboard } from '../common'
-import { BasicDialog } from './BasicDialog'
+import { copyToClipboard } from '../../../common.ts'
+import { BasicDialog } from './BasicDialog.tsx'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 
-import { Code } from '../components'
+import { Code } from './index.tsx'
 
 dayjs.extend(relativeTime)
 dayjs.locale(zh)

@@ -16,9 +16,6 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import SendIcon from '@mui/icons-material/Send'
 import FileIcon from '@mui/icons-material/Description'
 import Divider from '@mui/material/Divider'
-import Backdrop from '@mui/material/Backdrop'
-import CircularProgress from '@mui/material/CircularProgress'
-import IconButton from '@mui/material/IconButton'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
@@ -26,18 +23,16 @@ import Drawer from '@mui/material/Drawer'
 
 import {
   Code,
-  Message,
-  useMessage,
   FileDialog,
   ShareDialog,
-  Github,
   historyApi,
   History,
   Progress,
   Duration,
   PasswordSwitch,
 } from './components'
-import { resolveFileByCode, uploadFile } from './api'
+import { resolveFileByCode, uploadFile } from '../../api'
+import { Layout, LayoutProps } from '../../components'
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -54,14 +49,14 @@ const VisuallyHiddenInput = styled('input')({
 const envMax = Number.parseInt(import.meta.env.SHARE_MAX_SIZE_IN_MB, 10)
 const MAX_SIZE = Number.isNaN(envMax) || envMax <= 0 ? 10 : envMax
 
-export function App() {
+export function AppMain(props: LayoutProps) {
+  const setBackdropOpen = props.setBackdropOpen!
+  const message = props.message!
   const [tab, setTab] = useState('text')
-  const [messageProps, message] = useMessage()
   const dialogs = useDialogs()
   const [duration, updateDuration] = useState('')
   const [isEphemeral, updateEphemeral] = useState(false)
 
-  const [backdropOpen, setBackdropOpen] = useState(false)
   const [progress, updateProgress] = useState<null | number>(null)
 
   const [drawerOpened, updateDrawerOpened] = useState(false)
@@ -196,39 +191,7 @@ export function App() {
   }
 
   return (
-    <Container
-      className="ml-auto mr-auto"
-      sx={{
-        maxWidth: `600px !important`,
-        p: 2,
-      }}
-    >
-      <Box className="flex justify-between items-center" sx={{ p: 0 }}>
-        <div class="flex flex-row">
-          <img src="/logo.png" alt="brand" height="80" />
-          <Typography
-            variant="h4"
-            color="primary"
-            sx={{
-              position: 'relative',
-              top: 14,
-              fontFamily: 'DingDing',
-            }}
-          >
-            Cloudflare Drop
-          </Typography>
-        </div>
-        <IconButton
-          sx={{
-            position: 'relative',
-            top: -10,
-          }}
-          href="https://github.com/oustn/cloudflare-drop"
-          target="_blank"
-        >
-          <Github />
-        </IconButton>
-      </Box>
+    <>
       <Paper elevation={6}>
         <Container className="flex flex-col" sx={{ p: 2 }}>
           <Box
@@ -355,15 +318,14 @@ export function App() {
           }}
         />
       </Drawer>
-
-      <Message {...messageProps} />
-      <Backdrop
-        sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
-        open={backdropOpen}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
       <Progress open={progress !== null} value={progress ?? 0} />
-    </Container>
+    </>
+  )
+}
+export function Home() {
+  return (
+    <Layout>
+      <AppMain />
+    </Layout>
   )
 }
