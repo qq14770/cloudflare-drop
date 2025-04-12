@@ -20,6 +20,7 @@ export const files = sqliteTable('files', {
   is_ephemeral: integer('is_ephemeral', { mode: 'boolean' }).default(false), // 阅后即焚
   is_encrypted: integer('is_encrypted', { mode: 'boolean' }).default(false),
   due_date: integer('due_date', { mode: 'timestamp' }).notNull(), // 过期时间
+  created_at: integer('created_at', { mode: 'timestamp' }), // 创建时间
 })
 
 export const fileSelectSchema = createSelectSchema(files)

@@ -6,6 +6,7 @@ interface Env {
   SHARE_PORT: string
   SHARE_MAX_SIZE_IN_MB: string
   SHARE_DURATION: string
+  ADMIN_TOKEN?: string
   DB: D1Database
   ASSETS: Fetcher
   UPLOAD_LIMIT?: RateLimit

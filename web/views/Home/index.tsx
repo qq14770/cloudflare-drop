@@ -192,7 +192,11 @@ export function AppMain(props: LayoutProps) {
 
   return (
     <>
-      <Paper elevation={6}>
+      <Paper
+        className="ml-auto mr-auto"
+        elevation={6}
+        style={{ maxWidth: 600 }}
+      >
         <Container className="flex flex-col" sx={{ p: 2 }}>
           <Box
             className="flex gap-2"

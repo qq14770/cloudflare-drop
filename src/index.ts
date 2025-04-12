@@ -4,6 +4,7 @@ import {
   dbMiddleware,
   limitMiddleware,
   terminalMiddleware,
+  adminMiddleware,
 } from './middlewares'
 import {
   FileChunkCreate,
@@ -13,6 +14,7 @@ import {
   GetFileChunkInfo,
   MergeFileChunk,
 } from './files'
+import { DeleteShare, GetInfo, ListShares } from './admin'
 
 import { scheduled } from './scheduled'
 
@@ -25,6 +27,7 @@ const app = new Hono<{
 app.use('/api/*', dbMiddleware)
 app.use('/files/*', dbMiddleware)
 app.use('/files', limitMiddleware)
+app.use('/api/admin/*', adminMiddleware)
 app.use('/', terminalMiddleware)
 
 // Setup OpenAPI registry
@@ -38,6 +41,10 @@ openapi.put('/files/chunks', FileChunkCreate)
 openapi.post('/files/chunks/merged', MergeFileChunk)
 openapi.get('/files/:id', FileFetch)
 openapi.get('/files/share/:code', FileShareCodeFetch)
+
+openapi.get('/api/admin/info', GetInfo)
+openapi.get('/api/admin/shares', ListShares)
+openapi.delete('/api/admin/shares', DeleteShare)
 
 app.all(
   '/api/*',

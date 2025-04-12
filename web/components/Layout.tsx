@@ -35,37 +35,42 @@ export function Layout({ children }: LayoutProps) {
     <Container
       className="ml-auto mr-auto"
       sx={{
-        maxWidth: `600px !important`,
+        maxWidth: `1200px !important`,
         p: 2,
       }}
     >
-      <Box className="flex justify-between items-center" sx={{ p: 0 }}>
-        <Link href="/" className="flex flex-row no-underline">
-          <img src="/logo.png" alt="brand" height="80" />
-          <Typography
-            variant="h4"
-            color="primary"
+      <div
+        class="flex flex-col mr-auto ml-auto"
+        style="max-height: calc(100vh - 32px)"
+      >
+        <Box className="flex justify-between items-center" sx={{ p: 0 }}>
+          <Link href="/" className="flex flex-row no-underline">
+            <img src="/logo.png" alt="brand" height="80" />
+            <Typography
+              variant="h4"
+              color="primary"
+              sx={{
+                fontFamily: 'DingDing',
+              }}
+            >
+              <span class="relative" style="top: 14px">
+                Cloudflare Drop
+              </span>
+            </Typography>
+          </Link>
+          <IconButton
             sx={{
-              fontFamily: 'DingDing',
+              position: 'relative',
+              top: -10,
             }}
+            href="https://github.com/oustn/cloudflare-drop"
+            target="_blank"
           >
-            <span class="relative" style="top: 14px">
-              Cloudflare Drop
-            </span>
-          </Typography>
-        </Link>
-        <IconButton
-          sx={{
-            position: 'relative',
-            top: -10,
-          }}
-          href="https://github.com/oustn/cloudflare-drop"
-          target="_blank"
-        >
-          <Github />
-        </IconButton>
-      </Box>
-      {injectedChildren}
+            <Github />
+          </IconButton>
+        </Box>
+        {injectedChildren}
+      </div>
       <Message {...messageProps} />
       <Backdrop
         sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}

@@ -191,6 +191,7 @@ export class FileCreate extends Endpoint {
       size,
       is_ephemeral: isEphemeral,
       is_encrypted: isEncrypted,
+      created_at: dayjs().toDate(),
     }
 
     const [record] = await db.insert(files).values(insert).returning({

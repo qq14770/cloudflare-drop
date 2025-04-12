@@ -29,6 +29,8 @@ elif [ -n "$SHARE_DURATION" ]; then
   echo -e  "vars = { SHARE_DURATION = \"$SHARE_DURATION\" }" >> ./wrangler.toml
 elif [ -n "$SHARE_MAX_SIZE_IN_MB" ]; then
   echo -e  "vars = { SHARE_MAX_SIZE_IN_MB = \"$SHARE_MAX_SIZE_IN_MB\" }" >> ./wrangler.toml
+elif [ -n "$ADMIN_TOKEN" ]; then
+  echo -e  "vars = { ADMIN_TOKEN = \"$ADMIN_TOKEN\" }" >> ./wrangler.toml
 fi
 
 # Generate migration

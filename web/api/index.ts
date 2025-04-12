@@ -2,7 +2,7 @@ import axios, { AxiosProgressEvent } from 'axios'
 import { Encryptor } from '../helpers'
 import { Uploader } from './uploader.ts'
 
-async function processResponse(response: Response) {
+export async function processResponse(response: Response) {
   if (response.ok) return await response.json()
 
   return {
@@ -99,4 +99,44 @@ export async function fetchFile(
     return [blob, e as Error]
   }
   return [blob, null]
+}
+
+export function createAdminApi(token: string) {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  }
+
+  return {
+    list: async <T>(
+      page = 1,
+      size = 10,
+      orderBy = '',
+      order = '',
+    ): Promise<ApiResponseType<T>> => {
+      const search = new URLSearchParams({
+        size: `${size}`,
+        page: `${page}`,
+      })
+      if (orderBy && order) {
+        search.append('orderBy', orderBy)
+        search.append('order', order)
+      }
+      const response = await fetch(`/api/admin/shares?${search.toString()}`, {
+        headers,
+      })
+      return processResponse(response)
+    },
+
+    delete: async (
+      id: string | readonly string[],
+    ): Promise<ApiResponseType<unknown>> => {
+      const response = await fetch(`/api/admin/shares`, {
+        method: 'DELETE',
+        headers,
+        body: JSON.stringify(Array.isArray(id) ? id : [id]),
+      })
+      return processResponse(response)
+    },
+  }
 }

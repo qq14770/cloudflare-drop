@@ -22,6 +22,7 @@ jobs:
           D1_ID: ${{ secrets.D1_ID }}
           KV_ID: ${{ secrets.KV_ID }}
           CUSTOM_DOMAIN: ${{ secrets.CUSTOM_DOMAIN }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           SHARE_MAX_SIZE_IN_MB: ${{ vars.SHARE_MAX_SIZE_IN_MB }}
           RATE_LIMIT: ${{ vars.RATE_LIMIT }}
           SHARE_DURATION: ${{ vars.SHARE_DURATION }}

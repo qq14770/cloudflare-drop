@@ -8,6 +8,7 @@ interface FileType {
   size: number
   is_ephemeral?: boolean
   is_encrypted?: boolean
+  created_at: number
 }
 
 interface FileUploadedType {

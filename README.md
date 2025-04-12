@@ -59,3 +59,7 @@
 ## 过期清理
 
 Worker 添加了一个 10 分钟的定时任务，自动清理过期的 KV 存储和 D1 中的记录。
+
+## 后台管理
+
+通过配置 ADMIN_TOKEN Secret，可以访问管理后台：`https://your.drop.com/admin/{ADMIN_TOKEN}`， 在管理后台可以删除分享。
