@@ -50,6 +50,7 @@ export class ListShares extends Endpoint {
         items: records.map((r) => ({
           ...r,
           due_date: dayjs(r.due_date).isSame(MAX_DURATION) ? null : r.due_date,
+          created_at: !r.created_at?.getTime() ? null : r.created_at,
         })),
         total,
         page,
