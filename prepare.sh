@@ -23,14 +23,17 @@ if [ -n "$RATE_LIMIT" ]; then
   echo -e  "unsafe = { bindings = [{ name = \"UPLOAD_LIMIT\", type = \"ratelimit\", namespace_id = \"1001\", simple = { limit = 1, period = 10 } }] }" >> ./wrangler.toml
 fi
 
-if [ -n "$SHARE_DURATION" ] && [ -n "$SHARE_MAX_SIZE_IN_MB" ]; then
-  echo -e  "vars = { SHARE_DURATION = \"$SHARE_DURATION\", SHARE_MAX_SIZE_IN_MB = \"$SHARE_MAX_SIZE_IN_MB\" }" >> ./wrangler.toml
-elif [ -n "$SHARE_DURATION" ]; then
-  echo -e  "vars = { SHARE_DURATION = \"$SHARE_DURATION\" }" >> ./wrangler.toml
-elif [ -n "$SHARE_MAX_SIZE_IN_MB" ]; then
-  echo -e  "vars = { SHARE_MAX_SIZE_IN_MB = \"$SHARE_MAX_SIZE_IN_MB\" }" >> ./wrangler.toml
-elif [ -n "$ADMIN_TOKEN" ]; then
-  echo -e  "vars = { ADMIN_TOKEN = \"$ADMIN_TOKEN\" }" >> ./wrangler.toml
+vars=""
+
+[ -n "$SHARE_DURATION" ] && vars+="SHARE_DURATION = \"$SHARE_DURATION\", "
+[ -n "$SHARE_MAX_SIZE_IN_MB" ] && vars+="SHARE_MAX_SIZE_IN_MB = \"$SHARE_MAX_SIZE_IN_MB\", "
+[ -n "$ADMIN_TOKEN" ] && vars+="ADMIN_TOKEN = \"$ADMIN_TOKEN\", "
+
+# 移除最后多余的逗号和空格
+vars="${vars%, }"
+
+if [ -n "$vars" ]; then
+  echo "vars = { $vars }" >> ./wrangler.toml
 fi
 
 # Generate migration
