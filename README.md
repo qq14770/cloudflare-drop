@@ -63,3 +63,5 @@ Worker 添加了一个 10 分钟的定时任务，自动清理过期的 KV 存�
 ## 后台管理
 
 通过配置 ADMIN_TOKEN Secret，可以访问管理后台：`https://your.drop.com/admin/{ADMIN_TOKEN}`， 在管理后台可以删除分享。
+
+<img src="assets/IMG_6000.png" width="400">
