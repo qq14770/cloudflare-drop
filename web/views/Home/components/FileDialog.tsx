@@ -203,6 +203,7 @@ export function FileDialog({
             </Typography>
             {!payload.is_encrypted && (
               <Button
+                target="_blank"
                 variant="contained"
                 href={`/files/${payload.id}?token=${payload.token}`}
                 sx={(theme) => ({
