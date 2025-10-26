@@ -47,7 +47,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "airdrop"
-database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+database_id = "e91f8e73-4d3f-4053-aaa6-ec74141193c4"
 migrations_dir = "data/migrations"
 
 # Bind a dispatch namespace. Use Workers for Platforms to deploy serverless functions programmatically on behalf of your customers.
@@ -79,7 +79,7 @@ migrations_dir = "data/migrations"
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#kv-namespaces
 [[kv_namespaces]]
 binding = "file_drops"
-id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+id = "2feb05b6323e483186d335f0818822b9"
 
 # Bind an mTLS certificate. Use to present a client certificate when communicating with another service.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#mtls-certificates
