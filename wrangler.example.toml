@@ -47,7 +47,7 @@ enabled = true
 [[d1_databases]]
 binding = "airdrop"
 database_name = "airdrop"
-database_id = "e91f8e73-4d3f-4053-aaa6-ec74141193c4"
+database_id = "682af258-09ab-45ae-ada3-6f84b1cf1793"
 migrations_dir = "data/migrations"
 
 # Bind a dispatch namespace. Use Workers for Platforms to deploy serverless functions programmatically on behalf of your customers.
